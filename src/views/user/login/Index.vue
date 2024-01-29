@@ -52,10 +52,10 @@
 
 <script setup>
 import {reactive, ref} from "vue";
-import {ERROR, SUCCESS, WARNING} from "../../../utils/message.js";
-import {LOGIN} from "../../../service/api/userApi.js";
-import {STATUS_CODE} from "../../../common/status.js";
-import router from "../../../router/index.js";
+import {ERROR, SUCCESS, WARNING} from "@/utils/message.js";
+import {LOGIN} from "@/service/api/userApi.js";
+import {STATUS_CODE} from "@/common/status.js";
+import router from "@/router";
 
 const form = reactive({
   userAccount: '',
@@ -85,7 +85,12 @@ const handleSubmit = () => {
   LOGIN(JSON.stringify(form)).then(res => {
     if (res.code === STATUS_CODE.SUCCESS_CODE) {
       SUCCESS("登录成功！")
-      router.push({path: "/index", replace: true})
+      // 登录成功后从localStorage获取上一个页面路径，并解析为字符串
+      const previousRoute = localStorage.getItem('previousRoute');
+      const pathToRedirect = previousRoute ? JSON.parse(previousRoute) : '/index'; // 若没有存储则默认跳转首页
+      // 清除存储的路径
+      localStorage.removeItem('previousRoute');
+      router.replace(pathToRedirect)
     }else {
       ERROR(res.message)
     }

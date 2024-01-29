@@ -1,4 +1,4 @@
-import {DELETE, POST, POST_FILE} from "../../utils/axios.js";
+import {POST_FILE} from "@/utils/axios.js";
 import fileUrl from "../urls/fileUrl.js";
 
 

@@ -19,7 +19,7 @@ export function formatTime(value, type = 0) {
   minute = minute < 10 ? "0" + minute : minute;
   second = second < 10 ? "0" + second : second;
   const arr = [
-    year + "-" + month + "-" + date, //默认传0得到的是年月日
+    year + "-" + month + "-" + date, //默认传0得到的是年-月-日
     year + "-" + month + "-" + date + " " + hour + ":" + minute + ":" + second, //传1得到的是年月日时分秒(2022-12-31 19:30:25)
     year + "年" + month + "月" + date, //传2得到 (2022年12月31日)
     year +

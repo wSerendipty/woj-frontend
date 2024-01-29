@@ -1,8 +1,8 @@
-import {ACCESS_ENUM} from "../../../access/accessEnum.js";
+import {ACCESS_ENUM} from "@/access/accessEnum.js";
 
 
 export default {
-    title: "题库",
-    access: ACCESS_ENUM.NOT_LOGIN,
-    full: false,
+    title: "题目详情",
+    access: ACCESS_ENUM.USER,
+    full: true,
 };

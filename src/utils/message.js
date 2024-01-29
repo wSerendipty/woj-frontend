@@ -1,4 +1,5 @@
 import { Message } from '@arco-design/web-vue';
+import { Notification } from '@arco-design/web-vue';
 
 
 let messageDom = null
@@ -46,5 +47,45 @@ const WARNING = (msg) => {
     Message.warning(msg);
 };
 
+/**
+ * 成功通知提示
+ * @param title
+ * @param msg
+ * @constructor
+ */
+const NOTIFICATION_SUCCESS = (title,msg) => {
+    Notification.success({
+        title: title,
+        content: msg,
+    });
+}
 
-export { SUCCESS, INFO, ERROR, WARNING};
+/**
+ * 失败通知提示
+ * @param title
+ * @param msg
+ * @constructor
+ */
+const NOTIFICATION_ERROR = (title,msg) => {
+    Notification.error({
+        title: title,
+      content: msg,
+    });
+}
+
+/**
+ * 警告通知提示
+ * @param title
+ * @param msg
+ * @constructor
+ */
+const NOTIFICATION_WARNING = (title,msg) => {
+    Notification.warning({
+        title: title,
+
+      content: msg,
+    });
+}
+
+
+export { SUCCESS, INFO, ERROR, WARNING, NOTIFICATION_SUCCESS, NOTIFICATION_ERROR, NOTIFICATION_WARNING};

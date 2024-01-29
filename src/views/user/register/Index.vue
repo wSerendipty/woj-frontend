@@ -40,8 +40,8 @@
         <a title="抖音" href="#" target="_blank">
           <icon-tiktok-color/>
         </a>
-        <a title="微信" href="#" target="_blank"> <img class="wx" src="../../../assets/svg/wx.svg"></a>
-        <a title="QQ" href="#" target="_blank"> <img class="qq" src="../../../assets/svg/qq.svg"></a>
+        <a title="微信" href="#" target="_blank"> <img class="wx" src="../../../assets/svg/wx.svg" alt=""></a>
+        <a title="QQ" href="#" target="_blank"> <img class="qq" src="../../../assets/svg/qq.svg" alt=""></a>
 
 
       </div>
@@ -54,10 +54,10 @@
 
 <script setup>
 import {reactive, ref} from "vue";
-import {ERROR, SUCCESS, WARNING} from "../../../utils/message.js";
-import {REGISTER} from "../../../service/api/userApi.js";
-import {STATUS_CODE} from "../../../common/status.js";
-import router from "../../../router/index.js";
+import {ERROR, SUCCESS, WARNING} from "@/utils/message.js";
+import {REGISTER} from "@/service/api/userApi.js";
+import {STATUS_CODE} from "@/common/status.js";
+import router from "@/router";
 
 const form = reactive({
   userAccount: '',

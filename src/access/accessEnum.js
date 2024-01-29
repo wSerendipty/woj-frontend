@@ -2,5 +2,6 @@
 export const ACCESS_ENUM = {
     NOT_LOGIN: '-1',
     USER: 'user',
-    ADMIN: 'admin'
+    ADMIN: 'admin',
+    BAN:"ban"
 }

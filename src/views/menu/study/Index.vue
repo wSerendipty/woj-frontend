@@ -1,8 +1,8 @@
+<!-- Docs.vue -->
 <template>
-  这是学习页面
+  <div>
+  </div>
 </template>
 
-<script setup>
-
-
+<script setup lang="ts">
 </script>

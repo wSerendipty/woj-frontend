@@ -25,7 +25,6 @@ routers.push({
     path: "/",
     redirect: "/index"
 });
-
 const router = createRouter({
     // 指定路由模式
     history: createWebHistory(),
@@ -36,6 +35,8 @@ const router = createRouter({
 // 全局路由前置钩子
 router.beforeEach( (to, from, next)=>{
     if (to.matched.length === 0) {
+        // 如果未匹配到路由 记录上一次路由
+        localStorage.setItem('previousRoute', JSON.stringify(from.fullPath));
        next('/resultPage/404');
     }else {
         next();

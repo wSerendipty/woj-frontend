@@ -15,19 +15,50 @@
             </a-menu-item>
             <a-menu-item key="/menu/study">学习</a-menu-item>
             <a-menu-item key="/menu/problems">题库</a-menu-item>
-            <a-menu-item key="/menu/contest">竞赛</a-menu-item>
+<!--            <a-menu-item key="/menu/contest">竞赛</a-menu-item>-->
             <a-menu-item key="/menu/circle">讨论</a-menu-item>
-            <a-menu-item key="/admin" v-if="loginUser.userRole === ACCESS_ENUM.ADMIN">管理后台</a-menu-item>
+            <a-menu-item key="/admin/userManage/userInfo" v-if="loginUser.userRole === ACCESS_ENUM.ADMIN">管理后台</a-menu-item>
           </a-menu>
           <div class="right">
-            <a-input-search class="search" placeholder="搜索"/>
+<!--            <a-input-search class="search" placeholder="搜索"/>-->
             <!--            <icon-search class="icon"/>-->
             <div v-if="loginUser.userRole !== ACCESS_ENUM.NOT_LOGIN" style="display: flex;align-items: center">
               <icon-notification class="icon"/>
               <a-dropdown @select="handleSelect">
-                <a-avatar class="avatar">A</a-avatar>
+                <a-avatar class="avatar" >
+                  <IconUser v-if="!Boolean(loginUser.userAvatar)"/>
+                  <img
+                      v-else
+                      alt="avatar"
+                      :src="loginUser.userAvatar"
+                  />
+                </a-avatar>
                 <template #content>
-                  <a-doption>注销</a-doption>
+                  <a-doption value="0">
+                    <div class="dropdown-item">
+                      <icon-user class="icon"/>
+                      用户中心
+                    </div>
+                  </a-doption>
+                  <a-doption value="1">
+                    <div class="dropdown-item">
+                      <icon-settings class="icon"/>
+                      用户设置
+                    </div>
+                  </a-doption>
+                  <a-doption value="2">
+                    <div class="dropdown-item">
+                      <icon-safe class="icon"/>
+                      账号安全
+                    </div>
+                  </a-doption>
+                  <a-doption value="3">
+                    <div class="dropdown-item">
+                      <icon-export class="icon"/>
+                      登出登录
+                    </div>
+                  </a-doption>
+
                 </template>
               </a-dropdown>
 
@@ -60,11 +91,11 @@
 <script setup>
 import {computed, ref, watch} from "vue";
 import {useRoute, useRouter} from "vue-router";
-import store from "../store/index.js";
-import {ACCESS_ENUM} from "../access/accessEnum.js";
-import {LOGOUT} from "../service/api/userApi.js";
-import {STATUS_CODE} from "../common/status.js";
-import {SUCCESS} from "../utils/message.js";
+import store from "@/store/index.js";
+import {ACCESS_ENUM} from "@/access/accessEnum.js";
+import {LOGOUT} from "@/service/api/userApi.js";
+import {STATUS_CODE} from "@/common/status.js";
+import {SUCCESS} from "@/utils/message.js";
 
 const router = useRouter();
 const loginUser = computed(() => {
@@ -82,30 +113,60 @@ watch(() => route.path, (val) => {
 })
 
 const onClick = (key) => {
+  if (key === '/menu/study') {
+    window.open('/docs/index.html')
+    return;
+  }
   router.push({path: key});
 }
 
 const handleSelect = (v) => {
-  if (v === '注销'){
-    LOGOUT().then(res=>{
-      if (res.code === STATUS_CODE.SUCCESS_CODE){
+
+  switch (v){
+    case '0':
+      router.push({path:'/user/userInfo'})
+      break;
+    case '1':
+      router.push({path:'/user/userSetting'})
+      break;
+    case '2':
+      router.push({path:'/user/accountSecurity'})
+      break;
+    case '3':
+      LOGOUT().then(res => {
+        if (res.code === STATUS_CODE.SUCCESS_CODE) {
+          SUCCESS("注销成功")
+          store.dispatch('getUserInfo')
+        }
+      })
+      break;
+    default
+      :
+      break;
+  }
+/*  if (v === 2) {
+    LOGOUT().then(res => {
+      if (res.code === STATUS_CODE.SUCCESS_CODE) {
         SUCCESS("注销成功")
         store.dispatch('getUserInfo')
       }
     })
-  }
+  }*/
 }
 </script>
 
 <style scoped lang="scss">
 
+
 .basicLayout {
   width: 100%;
   height: 100vh;
+
   .header {
     border-bottom: 1px solid #00000014;
     width: 100%;
     height: 50px;
+
     .nav-bar {
       height: 100%;
       padding-left: 100px;
@@ -140,9 +201,11 @@ const handleSelect = (v) => {
 
 
         }
+
         :deep(.arco-menu-inner) {
           overflow: unset;
         }
+
         .arco-menu-item {
           color: rgba(0, 0, 0, 0.55);
           line-height: 1.5;
@@ -200,12 +263,16 @@ const handleSelect = (v) => {
         }
 
         .avatar {
+          display: flex;
+          align-items: center;
+          justify-content: center;
           margin-left: 10px;
           cursor: pointer;
           width: 30px;
           height: 30px;
 
         }
+
 
       }
 
@@ -216,7 +283,7 @@ const handleSelect = (v) => {
 
   .content {
     background: #ffffff;
-    min-height: calc(100vh - 100px);
+    min-height: calc(100vh - 16 * 3px)
   }
 
   .footer {
@@ -231,6 +298,15 @@ const handleSelect = (v) => {
       outline: none; /* 去除旧版浏览器的点击后的外虚线框 */
       color: #ffffff;; /* 去除默认的颜色和点击后变化的颜色 */
     }
+  }
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+
+  .icon {
+    margin-right: 8px;
   }
 }
 

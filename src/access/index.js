@@ -1,5 +1,5 @@
-import router from "../router/index.js";
-import store from "../store/index.js";
+import router from "@/router/index.js";
+import store from "@/store/index.js";
 import {checkAccess} from "./checkAccess.js";
 import {ACCESS_ENUM} from "./accessEnum.js";
 
@@ -15,6 +15,8 @@ router.beforeEach(async (to, from, next) => {
     }
     if (needAccess !== ACCESS_ENUM.NOT_LOGIN){
         if(loginUser.userRole === ACCESS_ENUM.NOT_LOGIN){
+            // 如果未登录且目标路由需要认证，则保存当前要访问的路由
+            localStorage.setItem('previousRoute', JSON.stringify(from.fullPath));
             next({
                 path: "/user/login",
                 replace:true

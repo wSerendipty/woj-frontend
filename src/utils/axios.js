@@ -1,8 +1,13 @@
 // axios.js
 import axios from "axios";
 import {ERROR} from "./message";
-import store from "../store/index.js";
-import {ACCESS_ENUM} from "../access/accessEnum.js";
+import store from "@/store/index.js";
+import {ACCESS_ENUM} from "@/access/accessEnum.js";
+import userUrl from "@/service/urls/userUrl.js";
+import tagUrl from "@/service/urls/tagUrl.js";
+import postUrl from "@/service/urls/postUrl.js";
+import postCommentUrl from "@/service/urls/postCommentUrl.js";
+import questionUrl from "@/service/urls/questionUrl.js";
 
 const baseURL = import.meta.env.VITE_BASE_URL;
 
@@ -15,7 +20,21 @@ axios.defaults.withCredentials = true;
 axios.defaults.headers.post["Content-Type"] = "application/json";
 axios.defaults.headers.put["Content-Type"] = "application/json";
 
-const releaseUrl = ["/user/login", "/user/register", "/user/get/login","/post/list/page/vo","/tag/list"]; // 放行路径
+// 放行路径
+const releaseUrl = [
+    userUrl.loginUrl,
+    userUrl.logoutUrl,
+    userUrl.registerUrl,
+    userUrl.getUserInfoUrl,
+    tagUrl.getTagListUrl,
+    postUrl.getPostListUrl,
+    postUrl.getPostByIdUrl,
+    postUrl.getTop10ByThumbUrl,
+    postCommentUrl.getTopCommentByPostIdUrl,
+    postCommentUrl.getChildrenCommentByCommentIdUrl,
+    questionUrl.getQuestionVOList,
+    questionUrl.getDailyQuestion,
+];
 
 // 请求拦截器
 axios.interceptors.request.use(
@@ -45,8 +64,6 @@ axios.interceptors.response.use(
             ERROR(res.data.message);
             return Promise.reject(res);
         }
-
-
         return res;
     },
     (err) => {

@@ -22,7 +22,7 @@
              @click="chooseTag(index)">
           {{ item }}
         </div>
-        <a-button type="primary" class="pushBtn" status="success" @click="pushAdd = true">
+        <a-button type="primary" class="pushBtn" status="success" @click="pushPost">
           <template #icon>
             <icon-pen/>
           </template>
@@ -30,7 +30,8 @@
         </a-button>
       </div>
       <div class="posts">
-        <div class="item" v-for="(item,index) in posts">
+        <a-empty v-if="posts.length === 0"/>
+        <div class="item" v-for="(item) in posts">
           <div class="item-top">
             <a-avatar :size="28">
               <img
@@ -44,14 +45,17 @@
                   <div class="title" @click="toDiscuss(item.id)">
                     {{ item.title }}
                   </div>
-                  <a-tag class="tag" color="orangered" v-if="item.user.userRole === ACCESS_ENUM.ADMIN">官方</a-tag>
-                  <a-tag class="tag" color="green" v-if="item.tagList.includes('推荐')">推荐</a-tag>
-                  <a-tag class="tag" color="arcoblue" v-if="item.tagList.includes('置顶')">置顶</a-tag>
+                  <div style="margin: 0 5px" v-for="special in item.specialTagList">
+                    <a-tag color="orangered" v-if="special === '官方'">官方</a-tag>
+                    <a-tag color="green" v-if="special ==='推荐'">推荐</a-tag>
+                    <a-tag color="arcoblue" v-if="special === '置顶'">置顶</a-tag>
+                  </div>
+
 
                 </div>
 
                 <div style="padding-top: 0.5rem">
-                  <a-tag class="tag" v-for="tag in item.tagList" style="margin-left: 0.5rem;">{{ tag }}</a-tag>
+                  <a-tag class="post_tag_item" v-for="tag in item.tagList">{{ tag }}</a-tag>
                 </div>
 
               </div>
@@ -70,7 +74,7 @@
                                     @click="thumb(item.id)"/>
                 <span>{{ item.thumbNum }}</span>
               </div>
-              <div class="message" @click="toPush(item.id)">
+              <div class="message" @click="toDiscuss(item.id)">
                 <icon-message class="icon"/>
                 <span>{{ item.commentNum }}</span>
               </div>
@@ -81,15 +85,15 @@
                 <span :style="{color:item.hasFavour?'rgb(255, 161, 22)':''}">{{ item.favourNum }}</span>
               </div>
             </div>
-            <a-divider :margin="15" v-if="index !== posts.length-1"/>
-            <a-divider :margin="30" v-if="pageRequest.current > pageRequest.pages &&  index === posts.length-1">
-          <span>
-            没有更多啦！
-          </span>
-            </a-divider>
+
           </div>
 
         </div>
+        <a-divider :margin="30" v-if="pageRequest.current > pageRequest.pages && posts.length !== 0">
+              <span>
+                没有更多啦！
+              </span>
+        </a-divider>
         <a-skeleton v-if="loading" :animation="loading" style="display: flex;padding-bottom: 20px;">
           <a-skeleton-shape shape="circle" size="small"/>
           <a-space direction="vertical" :style="{width:'100%'}" size="large" style="margin-left: 10px;">
@@ -100,7 +104,34 @@
       </div>
     </div>
     <div class="right">
-      addsadf
+      <div class="body">
+        <div class="rank">
+          <div class="tip"><icon-fire /> Top 榜</div>
+          <div v-for="(item,index) in top10" class="rank-item" @click="toDiscuss(item.id)">
+            <div class="rankIndex" :class="index < 3?'top3':''">{{ index + 1 }}</div>
+            <div>
+              <div class="item-top">
+                <a-avatar :size="25">
+                  <img
+                      alt="avatar"
+                      :src="item.user.userAvatar"
+                  />
+                </a-avatar>
+                <div class="item-top-right">
+                  <div class="title">
+                    {{ item.title }}
+                  </div>
+                </div>
+
+              </div>
+              <div class="content">
+                {{ item.content }}
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
     </div>
 
   </div>
@@ -113,18 +144,23 @@
 <script setup>
 
 import {onMounted, onUnmounted, ref} from "vue";
-import {ADD_POST, FAVOUR_POST, GET_PAGE_POST_LIST, THUMB_POST} from "../../../service/api/postApi.js";
-import {STATUS_CODE} from "../../../common/status.js";
-import {ERROR, SUCCESS} from "../../../utils/message.js";
-import router from "../../../router/index.js";
-import {ACCESS_ENUM} from "../../../access/accessEnum.js";
-import MdEditorVue from "../../../components/MdEditorVue.vue";
+import {ADD_POST, FAVOUR_POST, GET_PAGE_POST_LIST, GET_TOP10_BY_THUMB, THUMB_POST} from "@/service/api/postApi.js";
+import {STATUS_CODE} from "@/common/status.js";
+import {ERROR, NOTIFICATION_WARNING, SUCCESS} from "@/utils/message.js";
+import router from "@/router";
+import MdEditorVue from "@/components/mdEditor/MdEditorVue.vue";
+import {PostTags} from "@/common/tag/postTagConstants.js";
+import store from "@/store/index.js";
+import {ACCESS_ENUM} from "@/access/accessEnum.js";
+import  _ from "lodash";
 
 const pageRequest = {
   current: 1,
   pageSize: 10,
+  sortField: "",
+  sortOrder: "",
   pages: 0,
-  tags: ["编程"]
+  tags: []
 }
 
 const studyList = ref([
@@ -158,6 +194,7 @@ const posts = ref([
     commentNum: 0,
     id: "1",
     tagList: ['编程', '基础知识', '算法'],
+    specialTagList: [],
     thumbNum: 0,
     title: "学习编程基础",
     updateTime: "2024-01-03T04:34:56.000+00:00",
@@ -170,17 +207,21 @@ const posts = ref([
   }
 ])
 
-const tags = ref([
-  "编程",
-  "基础知识",
-  "算法",
-  "数据结构",
-  "前端",
-])
+const top10 = ref([])
+
+const tags = ref(PostTags)
 
 const tagActive = ref(0)
 
 const pushAdd = ref(false)
+
+const pushPost = () => {
+  if(store.getters.userInfo.userRole === ACCESS_ENUM.NOT_LOGIN){
+    NOTIFICATION_WARNING("提示","请先登录")
+  }else {
+    pushAdd.value = true
+  }
+}
 
 const emitMessage = {
   cancel: 'cancel',  // 取消
@@ -221,6 +262,7 @@ const choose = (index) => {
   })
   studyList.value[index].active = true
 }
+
 
 const getPosts = async (isChange) => {
   await GET_PAGE_POST_LIST(pageRequest).then(res => {
@@ -302,6 +344,14 @@ const favour = (id) => {
   })
 }
 
+const getTop10 = () => {
+  GET_TOP10_BY_THUMB().then(res => {
+    if (res.code === STATUS_CODE.SUCCESS_CODE) {
+      top10.value = res.data
+    }
+  })
+}
+
 const toDiscuss = (id) => {
   router.push({
     path: "/discuss",
@@ -346,11 +396,12 @@ const onBottom = () => {
 
 onMounted(() => {
   getPosts(true)
-  window.addEventListener('scroll', throttle(onBottom, 200))
+  getTop10()
+  window.addEventListener('scroll', _.debounce(onBottom, 200))
 })
 
 onUnmounted(() => {
-  window.removeEventListener("scroll", throttle(onBottom, 200), false)
+  window.removeEventListener("scroll", _.debounce(onBottom, 200), false)
 })
 
 
@@ -501,11 +552,16 @@ onUnmounted(() => {
     }
 
     .posts {
+
       margin-top: 1rem;
 
       .item {
-        padding-top: 1rem;
-
+        background: rgba(255, 255, 255, 1);
+        padding: 12px;
+        box-shadow: 0 1px 8px rgba(0, 10, 32, 0.1), 0 2px 8px rgba(0, 10, 32, 0.05);
+        transition: box-shadow 0.3s ease-in-out 0s;
+        margin-bottom: 10px;
+        border-radius: 8px;
 
         .item-top {
           display: flex;
@@ -530,10 +586,15 @@ onUnmounted(() => {
                 -webkit-line-clamp: 1;
                 -webkit-box-orient: vertical;
                 display: -webkit-box;
+                max-width: 500px;
               }
 
-              .tag {
-                margin-left: 0.5rem;
+              .post_tag_item {
+                border-radius: 8px;
+
+                &:not(:first-child) {
+                  margin-left: 0.5rem;
+                }
               }
 
 
@@ -567,23 +628,29 @@ onUnmounted(() => {
             gap: 1.5rem;
 
             .icon {
+              cursor: pointer;
               font-size: 16px;
               margin-right: 5px;
               color: rgb(140 140 140/1);
             }
 
             .thumb {
+              cursor: pointer;
+
               &:hover {
                 color: rgb(45 181 93/1);
               }
             }
 
             .message {
+              cursor: pointer;
+
               &:hover {
                 color: rgb(0 122 255/1);
               }
 
               .icon {
+
                 &:hover {
                   color: rgb(0 122 255/1);
                 }
@@ -605,11 +672,84 @@ onUnmounted(() => {
   }
 
   .right {
-    background: #00FFFF;
     position: static;
     padding: 0.5rem 0.5rem 1rem;
-    border-radius: 8px;
-    min-height: 90vh;
+    margin-left: 10px;
+
+    .body {
+      background: rgba(255, 255, 255, 1);
+      border-radius: 8px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.08);
+      min-width: 200px;
+      padding: 16px 16px 4px;
+
+      .rank {
+        .tip{
+          font-size: 18px;
+          line-height: 20px;
+          font-weight: 700;
+          font-style: italic;
+          color: rgba(255,161,22, 1);
+          margin-bottom:  10px;
+        }
+        .rank-item {
+          &:hover{
+            background: #F7F7F8;
+          }
+          border-radius: 5px;
+          cursor: pointer;
+          position: relative;
+          z-index: 0;
+          display: flex;
+          padding: 6px 6px;
+          margin-bottom: 4px;
+
+          .rankIndex {
+            margin-right: 8px;
+            font-size: 14px;
+            line-height: 20px;
+            min-width: 10px;
+            font-style: italic;
+            font-weight: 700;
+            transform: translateY(1px);
+            color: rgba(60,60,67,0.3);
+            &.top3{
+              color: rgba(255,161,22, 1);
+            }
+          }
+
+          .item-top {
+            display: flex;
+
+            .item-top-right {
+              margin-left: 10px;
+              font-size: 14px;
+              line-height: 20px;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+              flex: 1 1 auto;
+              font-weight: 500;
+              color: rgba(38, 38, 38, 1);
+            }
+
+          }
+
+          .content {
+            max-width: 200px;
+            font-size: 12px;
+            line-height: 20px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            height: 20px;
+            color: rgba(60, 60, 67, 0.3);
+            margin-top: 2px;
+          }
+        }
+      }
+    }
+
   }
 }
 

@@ -1,6 +1,5 @@
 <template>
   <div class="app">
-
     <div class="left">
       <div class="top">
         <div class="tip">
@@ -8,7 +7,7 @@
           <icon-right/>
         </div>
         <div class="contents">
-          <a class="content" v-for="item in studyList" target="_blank" href="#">
+          <div class="content" v-for="item in studyList" @click="toStudy(item.href)">
             <img :src="item.img " :alt="item.title"/>
             <div class="text">
               <div class="title">
@@ -18,7 +17,7 @@
                 {{ item.content }}
               </div>
             </div>
-          </a>
+          </div>
         </div>
       </div>
       <div class="tags sticky"
@@ -26,12 +25,13 @@
         <div class="tag" v-for="(item,index) in tags"
              :class="index === tagActive?'active':''"
              @click="chooseTag(index)">
-          {{ item.name }}
+          {{ item }}
         </div>
       </div>
       <div class="posts">
+        <a-empty v-if="posts.length === 0"/>
         <div class="item" v-for="(item,index) in posts">
-          <div class="item-top"  @click="toDiscuss(item.id)">
+          <div class="item-top" @click="toDiscuss(item.id)">
             <a-avatar :size="28">
               <img
                   alt="avatar"
@@ -45,9 +45,9 @@
               </div>
             </div>
 
-          </div  >
+          </div>
           <div class="item-bottom">
-            <div class="item-content" >
+            <div class="item-content" @click="toDiscuss(item.id)">
               {{ item.content }}
             </div>
             <div class="icons">
@@ -58,7 +58,7 @@
                 <span>{{ item.thumbNum }}</span>
               </div>
               <div class="message">
-                <icon-message class="icon"/>
+                <icon-message class="icon" @click="toDiscuss(item.id)"/>
                 <span>{{ item.commentNum }}</span>
               </div>
               <div class="favour">
@@ -87,7 +87,73 @@
       </div>
     </div>
     <div class="right">
-      addsadf
+      <div class="body">
+        <div class="content">
+          <div class="top">
+            <div style="display: flex;padding: 10px 10px 0 0 ">
+              <div v-for="item in weeks" class="weeks" :class="new Date().getDate() === item.date?'today':''">
+                <div class="week" :class="['SUN', 'SAT'].includes(item.dayOfWeek)?'relax':''">{{ item.dayOfWeek }}</div>
+                <div class="day todayDate" v-if="new Date().getDate() === item.date">今</div>
+                <div class="day" v-else>{{ item.date }}</div>
+              </div>
+            </div>
+
+          </div>
+          <div class="middle" @click="router.push({
+          path:'/problem/do',
+          query:{
+            name:'detail',
+            type:'daily',
+            id:dailyQuestion.id
+          }
+          })">
+            <div class="tip">
+              <icon-fire style="margin-right: 3px;"/>
+              每日 1 题
+            </div>
+            <div class="question">{{ dailyQuestion.id }}. {{ dailyQuestion.title }}</div>
+          </div>
+          <a-divider :margin="15"/>
+          <div class="bottom">
+            <div class="logout-result" v-if="store.getters.userInfo.userRole === ACCESS_ENUM.NOT_LOGIN">
+              <div class="tip"> 欢迎来到-WOJ</div>
+              <div class="goButton">
+                <a-button class="register" @click="router.push({path:'/user/register'})">注册</a-button>
+                <a-button class="login" @click="router.push({path:'/user/login'})">登录</a-button>
+              </div>
+
+            </div>
+            <div class="itemDays" v-else>
+              <svg viewBox="0 0 230.62 107.02">
+                <g :transform="`translate(${1+(index1*55)},0)`" :class="'month '+(index1+1)"
+                   v-for="(month,index1) in preDays">
+                  <g :transform="`translate(${1+(index2 *11)},0)`" :class="'week '+(index2+1)"
+                     v-for="(week,index2) in month.weeks">
+                    <rect v-for="(item,index3) in week" x="1" :y="11*index3" width="8.86" height="8.86"
+                          :fill="questionFinish.includes(item)?'#008024':'var(--fill-tertiary)'" rx="2" ry="2"
+                          class="cursor-pointer"
+                          :id="'rect-'+index1+'-'+index2+'-'+index3"
+                          :data-state="questionFinish.includes(item)"
+                          :data-date="item"
+                          @mouseover="handleHover"
+                          @mouseleave="handleLeave"
+                    ></rect>
+                  </g>
+                </g>
+                <text v-for="(month,index) in preDays" :x="10.825+(index*55)" y="96.52" font-size="10px" fill="#AFB4BD"
+                      class="font-xs">{{ month.month }}月
+                </text>
+              </svg>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div v-if="hoverFlag" :style="{top:rectY+'px',left:rectX+'px'}"
+         class="tooltip">
+      {{ tooltipText }}
     </div>
   </div>
 </template>
@@ -95,11 +161,18 @@
 <script setup>
 
 import {onMounted, onUnmounted, ref} from "vue";
-import {FAVOUR_POST, GET_PAGE_POST_LIST, THUMB_POST} from "../../service/api/postApi.js";
-import {STATUS_CODE} from "../../common/status.js";
-import {ERROR, SUCCESS} from "../../utils/message.js";
-import router from "../../router/index.js";
-import {GET_TAG_LIST} from "../../service/api/tagApi.js";
+import {FAVOUR_POST, GET_PAGE_POST_LIST, THUMB_POST} from "@/service/api/postApi.js";
+import {STATUS_CODE} from "@/common/status.js";
+import {ERROR, SUCCESS} from "@/utils/message.js";
+import router from "@/router/index.js";
+import {getNextWeek, groupDatesByMonthAndWeek} from "@/utils/getDate.js";
+import {GET_DAILY_QUESTION, GET_QUESTION_FINISH} from "@/service/api/questionApi.js";
+import {PostTags} from "@/common/tag/postTagConstants.js";
+import store from "@/store/index.js";
+import {ACCESS_ENUM} from "@/access/accessEnum.js";
+import {formatTime} from "@/utils/dateParse.js";
+import _ from "lodash";
+
 
 const pageRequest = {
   current: 1,
@@ -108,27 +181,32 @@ const pageRequest = {
   tags: ["编程"]
 }
 
+const weeks = ref(getNextWeek())
+const preDays = ref(groupDatesByMonthAndWeek())
+const dailyQuestion = ref({})
+const dailyRequest = {
+  belongType: "question",
+}
 const studyList = ref([
   {
-    title: '学习计划1',
-    content: '学习计划1的内容学习计划1的内容学习计划1的内容学习计划1的内容',
+    title: '编程学习路线',
+    content: '包含 Java、前端、C++、Python、SQL、计算机基础、数据结构和算法、Git & GitHub、Linux、设计模式等多个精心编写的学习路线，帮助程序员快速入门。',
     img: "https://assets.leetcode.cn/aliyun-lc-upload/study_plan_v2/top-interview-150/cover",
-    href: "学习计划1"
+    href: "/docs/index.html"
   },
   {
-    title: '学习计划2',
-    content: '学习计划2的内容',
+    title: '技术知识分享',
+    content: '通过简单的技术知识分享，帮助大家快速学习或复习巩固项目开发中的重点知识，便于把控学习进度、并且持续加深印象。',
     img: "https://assets.leetcode.cn/aliyun-lc-upload/study_plan_v2/top-100-liked/cover",
-    href: "学习计划2"
+    href: "/docs/index.html"
   },
   {
-    title: '学习计划3',
-    content: '学习计划3的内容',
+    title: '编程干货分享',
+    content: '编程学习指南、开发经验、求职经验、职场经验、技术分享、实战教程、项目教程、个人作品、编程资源等，做最接地气的编程干货分享。',
     img: "https://assets.leetcode.cn/aliyun-lc-upload/study_plan_v2/dynamic-programming/cover",
-    href: "学习计划3"
+    href: "/docs/index.html"
   }
 ])
-
 const posts = ref([
   {
     content: "学习编程的基础知识，包括语法、数据结构和算法。",
@@ -149,18 +227,59 @@ const posts = ref([
     userId: "1",
   }
 ])
-
-const tags = ref([])
-
-const tagQuery = {
-  belongType: "post"
-}
+const tags = ref(PostTags)
+const rectX = ref(1000);
+const rectY = ref(10);
+const tooltipText = ref('');
 
 const tagActive = ref(0)
 
+const hoverFlag = ref(false)
+const questionFinish = ref([])
+
+const questionStatusQueryRequest = {
+  type: "normal"
+}
+
+const getQuestionFinish = () => {
+  GET_QUESTION_FINISH(questionStatusQueryRequest).then(res => {
+    if (res.code === STATUS_CODE.SUCCESS_CODE) {
+      questionFinish.value = res.data.questionStatusVOList.map(item =>
+          formatTime(item.createTime, 0)
+      )
+    }
+  })
+}
+
+const handleHover = (e) => {
+  const date = e.target.dataset.date
+  if (e.target.dataset.state === "true") {
+    // 遍历questionFinish 查询有几个该日期
+    let count = 0
+    for (let i = 0; i < questionFinish.value.length; i++) {
+      if (questionFinish.value[i] === date) {
+        count++
+      }
+    }
+    tooltipText.value = date + " 提交 " + count + " 次"
+  } else {
+    tooltipText.value = date + " 未提交"
+  }
+  const element = document.querySelector(`#${e.target.id}`);
+  const rect = element.getBoundingClientRect();
+  rectX.value = parseInt(rect.left) - 70;
+  rectY.value = parseInt(rect.top) - 80;
+  hoverFlag.value = true
+}
+
+const handleLeave = (e) => {
+  hoverFlag.value = false
+  console.log(e.target.dataset.state)
+}
+
 const chooseTag = (index) => {
   tagActive.value = index
-  pageRequest.tags = [tags.value[index].name]
+  pageRequest.tags = [tags.value[index]]
   pageRequest.current = 1;
   pageRequest.pages = 0;
   getPosts(true)
@@ -183,6 +302,10 @@ const getPosts = async (isChange) => {
 }
 
 const loading = ref(false)
+
+const toStudy = (href) => {
+  window.open(href)
+}
 
 const thumb = (id) => {
   THUMB_POST(id).then(res => {
@@ -254,28 +377,6 @@ const toDiscuss = (id) => {
   })
 }
 
-const getTags = () => {
-  GET_TAG_LIST(tagQuery).then(res => {
-    if (res.code === STATUS_CODE.SUCCESS_CODE) {
-      tags.value = res.data
-    }
-  })
-}
-
-
-// 节流方法
-const throttle = (func, delay) => {
-  let timer = null;
-  return function () {
-    if (!timer) {
-      timer = setTimeout(() => {
-        func.apply(this, arguments);
-        timer = null
-      }, delay)
-    }
-  }
-}
-
 // 触底相应函数
 const onBottom = () => {
 
@@ -295,14 +396,26 @@ const onBottom = () => {
   }
 }
 
+const getDailyQuestion = () => {
+  GET_DAILY_QUESTION(dailyRequest).then(res => {
+    if (res.code === STATUS_CODE.SUCCESS_CODE) {
+      dailyQuestion.value = res.data
+    }
+  })
+}
+
 onMounted(() => {
   getPosts(true)
-  getTags()
-  window.addEventListener('scroll', throttle(onBottom, 200))
+  getDailyQuestion()
+  if (store.getters.userInfo.userRole !== ACCESS_ENUM.NOT_LOGIN) {
+    getQuestionFinish()
+  }
+  window.addEventListener('scroll', _.debounce(onBottom, 250))
 })
 
 onUnmounted(() => {
-  window.removeEventListener("scroll", throttle(onBottom, 200), false)
+  console.log("unmount")
+  window.removeEventListener("scroll", _.debounce(onBottom,250), false)
 })
 
 
@@ -471,6 +584,7 @@ onUnmounted(() => {
               font-size: 1rem;
               color: #1A1A1A;
               font-weight: 600;
+              max-width: 500px;
               overflow: hidden;
               -webkit-line-clamp: 1;
               -webkit-box-orient: vertical;
@@ -529,9 +643,175 @@ onUnmounted(() => {
   }
 
   .right {
-    background: #00FFFF;
     position: static;
     padding: 0.5rem 0.5rem 1rem;
+    height: 500px;
+
+    .body {
+      box-shadow: 0 0 #0000, 0 0 #0000, 0 0 #0000, 0 0 #0000, 0 0 1px 0 #0000001a, 0 0.5px 5px 0 #0000001a;
+      border: 1px solid #eeeeee;
+      border-radius: 6px;
+      min-height: 240px;
+      width: 340px;
+
+      .content {
+        width: 95%;
+        margin: 0 auto;
+
+        .top {
+          .weeks {
+            padding: 2px;
+            display: flex;
+            flex-direction: column;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            flex: 1 1 0;
+
+            &.today {
+              background: #0000000f;
+            }
+
+            .week {
+              font-weight: 600;
+              font-size: .75rem;
+              color: #00000057;
+              margin-bottom: 4px;
+
+              &.relax {
+                color: rgb(239 71 67/1);;
+              }
+            }
+
+            .day {
+              color: #0000008c;
+              font-weight: 600;
+              font-size: 13px;
+
+              &.todayDate {
+                color: #1A1A1A;
+                font-weight: 600;
+              }
+            }
+
+            &:hover {
+              background: #0000000f;
+            }
+          }
+        }
+
+        .middle {
+          margin: 10px auto;
+          border-radius: 6px;
+          padding: 10px;
+          background: #F5F5F5;
+          cursor: pointer;
+
+          &:hover {
+            background: #0000000f;
+          }
+
+          .tip {
+            color: rgb(27, 163, 255);
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            margin-bottom: .75rem;
+          }
+
+          .question {
+            color: #1a1a1a;
+            font-size: .875rem;
+            line-height: 1.25rem;
+          }
+        }
+
+        .bottom {
+          width: 100%;
+
+          .logout-result {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+
+            .tip {
+              color: #0000008c;
+              font-size: .875rem;
+              line-height: 1.25rem;
+              text-align: center;
+            }
+
+            .goButton {
+              width: 100%;
+              display: flex;
+              justify-content: space-between;
+              margin-top: 1rem;
+
+              .register {
+                border-radius: 6px;
+                width: 48%;
+                background: #1A1A1A;
+                color: #F5F5F5;
+                border-color: #1A1A1A;
+              }
+
+              .login {
+                border-radius: 6px;
+                width: 48%;
+                background: #1A1A1A;
+                color: #F5F5F5;
+                border-color: #1A1A1A;
+              }
+            }
+          }
+
+          .itemDays {
+            display: flex;
+
+            .cursor-pointer {
+              cursor: pointer;
+              color: #F5F5F5;
+            }
+
+            .itemDay {
+              width: 10px;
+              height: 10px;
+              border-radius: 2px;
+              background: #F5F5F5;
+              cursor: pointer;
+
+              &:hover {
+                background: #0000000f;
+              }
+            }
+          }
+
+          .months {
+            .month {
+
+            }
+          }
+
+        }
+      }
+
+
+    }
+  }
+
+  .tooltip {
+    box-shadow: 0 0 #0000, 0 0 #0000, 0 0 #0000, 0 0 #0000, 0 0 1px 0 #0000001a, 0 0.5px 5px 0 #0000001a;
+    border: 1px solid #eeeeee;
+    position: absolute;
+    background-color: #fff;
+    border-radius: 5px;
+    padding: 4px 8px;
+    font-size: 12px;
+    white-space: nowrap;
+    pointer-events: none; /* 避免遮挡鼠标事件 */
+    z-index: 999;
   }
 
 }

@@ -1,5 +1,5 @@
 import postUrl from "../urls/postUrl.js";
-import {POST} from "../../utils/axios.js";
+import {GET, POST} from "@/utils/axios.js";
 
 /**
  * 获取文章列表分页
@@ -39,4 +39,48 @@ export function FAVOUR_POST(postId) {
  */
 export function ADD_POST(post) {
     return POST(postUrl.addPostUrl , post)
+}
+
+/**
+ * 删除文章
+ * @param postId
+ * @returns {Promise}
+ * @constructor
+ */
+export function DELETE_POST(postId) {
+    return POST(postUrl.deletePostUrl , {id:postId})
+}
+
+/**
+ * 根据id获取文章
+ * @param postId
+ * @returns {Promise}
+ * @constructor
+ */
+export function GET_POST_BY_ID(postId) {
+    return GET(postUrl.getPostByIdUrl, {id: postId})
+}
+
+/**
+ * 更新文章
+ * @param post
+ * @returns {Promise}
+ * @constructor
+ */
+export function UPDATE_POST(post) {
+    return POST(postUrl.updatePostUrl , post)
+}
+
+/**
+ * 编辑文章
+ */
+export function EDIT_POST(post) {
+    return POST(postUrl.editPostUrl , post)
+}
+
+/**
+ * 根据点赞数取前10个帖子
+ */
+export function GET_TOP10_BY_THUMB() {
+    return GET(postUrl.getTop10ByThumbUrl)
 }
