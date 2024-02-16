@@ -10,6 +10,7 @@
           :disabled-menus="[]"
           @change="change"
           @upload-image="handleUploadImage"
+          @copy-code-success="handleCopyCodeSuccess"
       ></v-md-editor>
     </div>
 
@@ -18,6 +19,7 @@
 <script setup>
 import {ref} from 'vue';
 import {UPLOAD_IMAGE} from "@/service/api/fileApi.js";
+import {SUCCESS} from "@/utils/message.js";
 
 const props = defineProps({
   value: {
@@ -62,6 +64,11 @@ const handleUploadImage = async (event, insertImage, files) => {
     height: '200',
   });
 };
+
+const handleCopyCodeSuccess = (code) => {
+  SUCCESS('复制成功')
+  console.log(code)
+}
 
 
 </script>

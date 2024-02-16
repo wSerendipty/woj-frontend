@@ -7,8 +7,10 @@ export default {
     registerUrl: "/user/register",
     /**退出登录 */
     logoutUrl: "/user/logout",
-    /**获取用户信息*/
+    /**获取登录用户信息*/
     getUserInfoUrl:"/user/get/login",
+    /** 根据id获取用户信息*/
+    getUserByIdUrl:"/user/get",
     /**获取用户列表 */
     listUserUrl:"/user/list/page",
     /**添加用户 */

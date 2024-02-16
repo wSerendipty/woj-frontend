@@ -124,13 +124,13 @@ const handleSelect = (v) => {
 
   switch (v){
     case '0':
-      router.push({path:'/user/userInfo'})
+      router.push({path:'/user/detail'})
       break;
     case '1':
-      router.push({path:'/user/userSetting'})
+      router.push({path:'/user/profile'})
       break;
     case '2':
-      router.push({path:'/user/accountSecurity'})
+      router.push({path:'/user/safe'})
       break;
     case '3':
       LOGOUT().then(res => {

@@ -13,20 +13,17 @@
 <script setup>
 import * as monaco from 'monaco-editor';
 import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
-import {onMounted, ref, toRaw, watch} from 'vue';
+import {computed, onMounted, ref, toRaw, watch} from 'vue';
 import {Languages} from "@/common/language/languageConstants.js";
+import store from "@/store/index.js";
 
 const props = defineProps({
   value: {
     type: Object,
     default: () => {
       return {
-        language: 'java',
-        code: `public class Main {
-    public static void main(String[] args) {
-        System.out.println("Hello World!");
-    }
-}`
+        language: "",
+        code: "",
       }
     },
   },
@@ -50,57 +47,20 @@ const props = defineProps({
   }
 });
 
-const editorValue = ref(props.value.code);
+const editorValue = ref(props.value.code || '');
 
 const editorRef = ref(null);
 
 const codeEditor = ref(null);
-const languages = ref(Languages)
+const languages = computed(() => {
+  return store.getters.questionInfo.questionTemplates.map(item => item.language);
+});
 
-const template = ref([
-  {
-    type: 'java',
-    defaultCode: `public class Main {
-    public static void main(String[] args) {
-        System.out.println("Hello World!");
-    }
-}`,
-  },
-  {
-    type: 'python',
-    defaultCode: `print("Hello World!")`,
-  },
-  {
-    type: 'c',
-    defaultCode: `#include <stdio.h>
-int main() {
-    printf("Hello World!");
-    return 0;
-}`,
-  },
-  {
-    type: 'cpp',
-    defaultCode: `#include <iostream>
-using namespace std;
-int main() {
-    cout << "Hello World!";
-    return 0;
-}`,
-  },
-  {
-    type: 'json',
-    defaultCode: `[{"input": "1 2","output": "3"}]`
-  }, {
-    type: "go",
-    defaultCode: `package main
-import "fmt"
-func main() {
-    fmt.Println("Hello World!")
-}`
-  }
-]);
+const template = computed(() => {
+  return store.getters.questionInfo.questionTemplates;
+})
 
-const languageHandle = ref(props.value.language)
+const languageHandle = ref(languages.value[0] || 'java')
 
 
 watch(() => languageHandle.value, (val) => {
@@ -108,7 +68,14 @@ watch(() => languageHandle.value, (val) => {
     return;
   }
   monaco.editor.setModelLanguage(toRaw(codeEditor.value).getModel(), val);
-  toRaw(codeEditor.value).setValue(template.value.find(item => item.type === val).defaultCode || '');
+
+  toRaw(codeEditor.value).setValue(template.value.find(item => item.language === val).code || '');
+})
+
+watch(()=>template.value,(val)=>{
+  monaco.editor.setModelLanguage(toRaw(codeEditor.value).getModel(), val[0].language);
+
+  toRaw(codeEditor.value).setValue(val[0].code || '');
 })
 
 // 解决vite Monaco提示错误
@@ -123,9 +90,9 @@ onMounted(() => {
     return;
   }
   // 直接创建编辑器实例即可
-  codeEditor.value = monaco.editor.create(editorRef.value, {
+    codeEditor.value = monaco.editor.create(editorRef.value, {
     value: editorValue.value,
-    language: "java",
+    language: languageHandle.value,
     roundedSelection: false,
     scrollBeyondLastLine: false,
     readOnly: false,
