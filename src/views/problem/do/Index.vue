@@ -81,7 +81,8 @@
                   <icon-code style="color:#01B328; margin-right: 5px;"/>
                   代码
                 </div>
-                <CodeEditorVue :on-change="changeCode" :on-select="selectLanguage" :height="editorHeight"/>
+                <CodeEditorVue :on-change="changeCode"
+                               :on-select="selectLanguage" :height="editorHeight"/>
               </div>
 
             </a-typography-paragraph>
@@ -116,8 +117,9 @@
                     <div class="caseDetail">
                       <div class="input">
                         <div class="tip">输入</div>
-                        <div class="case">
-                          <a-input v-model:model-value="runRequest.judgeCase[caseIndex].input"></a-input>
+                        <div class="case" v-for="(item1,index1) in testJudgeCaseInput[caseIndex]">
+                          <div class="label">arg{{ index1 + 1 }} =</div>
+                          <a-input v-model:model-value="testJudgeCaseInput[caseIndex][index1]"></a-input>
                         </div>
                       </div>
                       <div class="output">
@@ -148,9 +150,9 @@
                              v-if="JUDGE_INFO_STATUS_ENUM.TIME_LIMIT_EXCEEDED === runResult.judgeInfo.status">
                           {{ runResult.judgeInfo.message }}
                         </div>
-                        <div class="time">执行用时: {{ runResult.judgeInfo.time }} ms</div>
+                        <div class="time">执行用时: {{ Boolean(runResult.judgeInfo.time)? runResult.judgeInfo.time : 'NULL' }} ms</div>
                       </div>
-                      <div class="bottom">
+                      <div class="bottom" v-if="Boolean(runResult.judgeInfo.input)">
                         <div class="tags">
                           <a-tag class="tag"
                                  :class="judgeCaseIndex===index?'active':''"
@@ -163,9 +165,11 @@
                         <div class="caseDetail">
                           <div class="input">
                             <div class="tip">输入</div>
-                            <div class="case">
+                            <div class="case"
+                                 v-for="(item1,index1) in runResult.judgeInfo.input[judgeCaseIndex].split('\n')">
+                              <div class="label">arg{{ index1 + 1 }} =</div>
                               <a-input disabled
-                                       v-model:model-value="runResult.judgeInfo.input[judgeCaseIndex]"></a-input>
+                                       v-model:model-value="runResult.judgeInfo.input[judgeCaseIndex].split('\n')[index1]"></a-input>
                             </div>
                           </div>
                           <div class="output">
@@ -206,7 +210,7 @@ import router from "@/router/index.js";
 import {useRoute} from "vue-router";
 import {GET_QUESTION_BY_ID} from "@/service/api/questionApi.js";
 import {STATUS_CODE} from "@/common/status.js";
-import {ERROR, SUCCESS} from "@/utils/message.js";
+import {ERROR, NOTIFICATION_ERROR, NOTIFICATION_SUCCESS, SUCCESS} from "@/utils/message.js";
 import {GET_QUESTION_RUN_BY_ID, RUN_QUESTION} from "@/service/api/questionRunApi.js";
 import {GET_QUESTION_SUBMIT_BY_ID, SUBMIT_QUESTION} from "@/service/api/questionSubmitApi.js";
 import {JUDGE_INFO_STATUS_ENUM} from "@/common/judge/judgeInfoStatusEnum.js";
@@ -224,6 +228,7 @@ const questionInfo = ref({})
 const caseIndex = ref(0)
 const changeTabIndex = ref(0)
 const judgeCaseIndex = ref(0)
+const testJudgeCaseInput = ref([])
 
 
 const runRequest = ref({
@@ -237,8 +242,7 @@ const runRequest = ref({
   language: "java",
   questionId: ""
 })
-const runResult = ref({
-})
+const runResult = ref({})
 const runId = ref("")
 const runLoading = ref(false)
 const submitLoading = ref(false)
@@ -275,6 +279,7 @@ const toPath = (id) => {
     router.push({
       query: {
         name: 'detail',
+        type: route.query.type,
         id: route.query.id
       }
     })
@@ -282,6 +287,7 @@ const toPath = (id) => {
     router.push({
       query: {
         name: 'solution',
+        type: route.query.type,
         id: route.query.id
       }
     })
@@ -289,6 +295,7 @@ const toPath = (id) => {
     router.push({
       query: {
         name: 'submit',
+        type: route.query.type,
         id: route.query.id
       }
     })
@@ -337,6 +344,7 @@ const addCase = () => {
     input: "",
     output: ""
   }
+  testJudgeCaseInput.value.push(testJudgeCaseInput.value.length === 0 ? [] : testJudgeCaseInput.value[testJudgeCaseInput.value.length - 1])
   runRequest.value.judgeCase.push(judgeCase)
   caseIndex.value = runRequest.value.judgeCase.length - 1
 }
@@ -354,6 +362,12 @@ const back = () => {
 }
 
 const run = async () => {
+  console.log(runRequest.value)
+  console.log(testJudgeCaseInput.value)
+  for (let i = 0; i < runRequest.value.judgeCase.length; i++) {
+    runRequest.value.judgeCase[i].input = testJudgeCaseInput.value[i].join('\n')
+  }
+  // console.log(runRequest.value)
   const r = await RUN_QUESTION(runRequest.value)
   if (r.code === STATUS_CODE.SUCCESS_CODE) {
     console.log(r.data)
@@ -383,14 +397,14 @@ const getQuestionRun = () => {
     if (r.code === STATUS_CODE.SUCCESS_CODE) {
       console.log(r.data)
       if (r.data.status === 2) {
-        SUCCESS("运行完毕！")
+        NOTIFICATION_SUCCESS("运行成功！")
         runResult.value = r.data
         runLoading.value = false
         changeTabIndex.value = 1
         clearInterval(intervalId)
       }
     } else {
-      ERROR(r.message)
+      NOTIFICATION_ERROR(r.message)
       clearInterval(intervalId)
     }
   }, 1000);
@@ -404,7 +418,7 @@ const getQuestionSubmit = () => {
     if (r.code === STATUS_CODE.SUCCESS_CODE) {
       console.log(r.data)
       if (r.data.status === 2) {
-        SUCCESS("提交完毕！")
+        NOTIFICATION_SUCCESS("提交成功！")
         submitLoading.value = false
         router.push({
           query: {
@@ -415,7 +429,7 @@ const getQuestionSubmit = () => {
         clearInterval(intervalId)
       }
     } else {
-      ERROR(r.message)
+      NOTIFICATION_ERROR(r.message)
       clearInterval(intervalId)
     }
   }, 1000);
@@ -423,7 +437,7 @@ const getQuestionSubmit = () => {
 
 const getQuestionInfo = async (id) => {
   console.log(id)
-  const res = await store.dispatch('getQuestionInfo',id)
+  const res = await store.dispatch('getQuestionInfo', id)
   if (res.code === STATUS_CODE.SUCCESS_CODE) {
     questionInfo.value = res.data
     let judgeCase = []
@@ -432,6 +446,7 @@ const getQuestionInfo = async (id) => {
         input: item.input,
         output: item.output
       })
+      testJudgeCaseInput.value.push(item.input.split('\n'))
     })
     runRequest.value.judgeCase = judgeCase
     runRequest.value.questionId = res.data.id
@@ -490,7 +505,7 @@ onMounted(() => {
     }
 
     .operator {
-      margin-left: 430px;
+      margin-left: 440px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -694,9 +709,19 @@ onMounted(() => {
                   font-size: .75rem;
                   line-height: 1rem;
                 }
-              }
 
-              .content {
+                .case {
+                  margin-bottom: 10px;
+
+                  .label {
+                    color: #3c3c4399;
+                    font-weight: 500;
+                    font-size: .75rem;
+                    line-height: 1rem;
+                    margin-right: 5px;
+                    margin-bottom: 10px;
+                  }
+                }
               }
             }
 
@@ -708,8 +733,6 @@ onMounted(() => {
                 line-height: 1rem;
               }
 
-              .content {
-              }
             }
           }
         }
@@ -735,6 +758,19 @@ onMounted(() => {
                 &.accept {
                   color: rgb(45 181 93/1);
                 }
+
+                &.wrong {
+                  color: rgb(255 0 0/1);
+                }
+
+                &.compile-error {
+                  color: rgb(255 0 0/1);
+                }
+
+                &.time-limit-exceed {
+                  color: rgb(255 0 0/1);
+                }
+
               }
 
               .time {
@@ -792,7 +828,17 @@ onMounted(() => {
                     line-height: 1rem;
                   }
 
-                  .content {
+                  .case {
+                    margin-bottom: 10px;
+
+                    .label {
+                      color: #3c3c4399;
+                      font-weight: 500;
+                      font-size: .75rem;
+                      line-height: 1rem;
+                      margin-right: 5px;
+                      margin-bottom: 10px;
+                    }
                   }
                 }
 
@@ -804,8 +850,6 @@ onMounted(() => {
                     line-height: 1rem;
                   }
 
-                  .content {
-                  }
                 }
 
                 .expectedOutput {

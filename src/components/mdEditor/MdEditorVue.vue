@@ -31,6 +31,7 @@
         :disabled-menus="[]"
         @change="change"
         @upload-image="handleUploadImage"
+        @copy-code-success="handleCopyCodeSuccess"
     ></v-md-editor>
   </div>
 
@@ -181,6 +182,11 @@ const getTagList = () => {
       })
     }
   })
+}
+
+const handleCopyCodeSuccess = (code) => {
+  SUCCESS("复制成功")
+  console.log(code)
 }
 
 onMounted(() => {

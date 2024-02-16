@@ -62,11 +62,11 @@
             <div><code>{{ JSON.stringify(form.testJudgeCase) }}</code></div>
           </div>
           <div style="display: flex;align-items: end">
-            <a-button type="primary" @click="addTestCaseModelFlag" style="margin-left: auto;">添加用例</a-button>
+            <a-button type="primary" @click="addTestCaseModelFlag" style="margin-left: auto;">添加测试用例</a-button>
           </div>
           <a-modal v-if="testCaseModel" v-model:visible="testCaseModel" title="添加测试用例（JSON格式）" @ok="addTestJudgeCase"
                    @cancel="testCaseModel = false">
-            <CodeEditorVue :on-change="changeTestCase" class="editor"
+            <CodeEditorVue :on-change="changeTestCase"  class="editor"
                            :height="'200px'"></CodeEditorVue>
           </a-modal>
         </a-form-item>
@@ -114,12 +114,13 @@
 
 </template>
 <script setup>
-import {ref, watch} from "vue";
+import {onMounted, ref, watch} from "vue";
 import MdEditorContent from "@/components/mdEditor/MdEditorContent.vue";
 import CodeEditorVue from "@/components/codeEditor/CodeEditorVue.vue";
 import {ADD_QUESTION} from "@/service/api/questionApi.js";
 import {STATUS_CODE} from "@/common/status.js";
 import {ERROR, SUCCESS} from "@/utils/message.js";
+import store from "@/store/index.js";
 
 const editCodeModel = ref(false)
 const codeModel = ref(false)
@@ -245,6 +246,51 @@ const submit = () => {
     }
   })
 }
+onMounted(()=>{
+  store.commit('set_question',{
+    acceptedNum: 0,
+    content: "",
+    createTime: "",
+    difficulty: "",
+    id: 0,
+    judgeCase: [],
+    judgeConfig: {
+      memoryLimit: 0,
+      stackLimit: 0,
+      timeLimit: 0
+    },
+    questionTemplates: [
+      {
+        language: "json",
+        code: "",
+      },{
+        language: "java",
+        code: "class Solution {\n" +
+            "    public int[]  solution() {\n" +
+            "\n" +
+            "    }\n" +
+            "}",
+      },
+      {
+        language: "python",
+        code: "",
+      },
+      {
+        language: "c",
+        code: "",
+      },
+      {
+        language: "cpp",
+        code: "",
+      }
+    ],
+    solutionNum: 0,
+    submitNum: 0,
+    tags: [],
+    testJudgeCase: [],
+    title: ""
+  })
+})
 
 </script>
 

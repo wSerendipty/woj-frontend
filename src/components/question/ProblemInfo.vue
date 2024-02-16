@@ -22,8 +22,14 @@
         <div v-for="(item,index) in questionInfo.testJudgeCase" class="example-item">
           <div class="tip"><strong>示例 {{ index + 1 }}:</strong></div>
           <div class="testCase">
-            <div class="input"><strong>输入:</strong> {{ item.input }}</div>
-            <div class="output"><strong>输出:</strong> {{ item.output }}</div>
+            <div class="input">
+              <div class="label">输入:</div>
+              <div v-for="(item1,index1) in item.input.split('\n')" :key="index">
+                arg{{index1+1}} = {{item1}}<span v-if="index1 !== item.input.split('\n').length-1">，</span></div>
+            </div>
+            <div class="output"><div class="label">输出:</div>
+              <div>{{ item.output }}</div>
+            </div>
           </div>
         </div>
       </div>
@@ -110,14 +116,13 @@ onMounted(() => {
     }
 
     .content {
-
       margin-top: 10px;
       font-size: 15px;
       line-height: 24px;
     }
 
     .example {
-      margin-top: 50px;
+      margin-top: 10px;
 
       .example-item {
         margin-bottom: 10px;
@@ -136,12 +141,30 @@ onMounted(() => {
           padding-left: 10px;
 
           .input {
-            font-size: 15px;
+            .label{
+              color: #1a1a1a;
+              font-weight: 600;
+              font-size: 15px;
+              line-height: 24px;
+              margin-right: 5px;
+            }
+            color: var(--color-neutral-8);
+            display: flex;
+            font-size: 13px;
             line-height: 24px;
           }
 
           .output {
-            font-size: 15px;
+            .label{
+              color: #1a1a1a;
+              font-weight: 600;
+              font-size: 15px;
+              line-height: 24px;
+              margin-right: 5px;
+            }
+            color: var(--color-neutral-8);
+            display: flex;
+            font-size: 13px;
             line-height: 24px;
           }
         }

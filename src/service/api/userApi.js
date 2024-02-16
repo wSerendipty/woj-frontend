@@ -7,8 +7,8 @@ import userUrl from "../urls/userUrl.js";
  * @returns {Promise}
  * @constructor
  */
-export function LOGIN(data){
-    return POST(userUrl.loginUrl,data)
+export function LOGIN(data) {
+    return POST(userUrl.loginUrl, data)
 }
 
 /**
@@ -17,8 +17,8 @@ export function LOGIN(data){
  * @returns {Promise}
  * @constructor
  */
-export function REGISTER(data){
-    return POST(userUrl.registerUrl,data)
+export function REGISTER(data) {
+    return POST(userUrl.registerUrl, data)
 }
 
 /**
@@ -26,45 +26,52 @@ export function REGISTER(data){
  * @returns {Promise}
  * @constructor
  */
-export function GET_LOGIN_USER(){
+export function GET_LOGIN_USER() {
     return GET(userUrl.getUserInfoUrl)
+}
+
+/**
+ * 根据id获取用户信息
+ * @param data
+ */
+export function GET_USER_BY_ID(data) {
+    return GET(userUrl.getUserByIdUrl, {id: data})
 }
 
 /**
  * 获取用户列表
  */
-export function LIST_USER(data){
-    return POST(userUrl.listUserUrl,data)
+export function LIST_USER(data) {
+    return POST(userUrl.listUserUrl, data)
 }
 
 /**
  * 添加用户
  */
-export function ADD_USER(data){
-    return POST(userUrl.addUserUrl,data)
+export function ADD_USER(data) {
+    return POST(userUrl.addUserUrl, data)
 }
 
 /**
  * 删除用户
  */
-export function DELETE_USER(data){
-    return POST(userUrl.deleteUserUrl,{id:data})
+export function DELETE_USER(data) {
+    return POST(userUrl.deleteUserUrl, {id: data})
 }
 
 /**
  * 修改用户
  */
-export function UPDATE_USER(data){
-    return POST(userUrl.updateUserUrl,data)
+export function UPDATE_USER(data) {
+    return POST(userUrl.updateUserUrl, data)
 }
 
 /**
  * 编辑用户
  */
-export function EDIT_USER(data){
-    return POST(userUrl.editUserUrl,data)
+export function EDIT_USER(data) {
+    return POST(userUrl.editUserUrl, data)
 }
-
 
 
 /**
@@ -72,6 +79,6 @@ export function EDIT_USER(data){
  * @returns {Promise}
  * @constructor
  */
-export function LOGOUT(){
+export function LOGOUT() {
     return POST(userUrl.logoutUrl, null)
 }
