@@ -29,6 +29,7 @@ export default {
         async getUserInfo({commit}) {
             await GET_LOGIN_USER().then((res) => {
                 if (res.code === STATUS_CODE.SUCCESS_CODE) {
+                    console.log(res)
                     commit('set_user', res.data)
                 } else if (res.code === STATUS_CODE.NOT_LOGIN_CODE) {
                     commit("set_user", {userRole: ACCESS_ENUM.NOT_LOGIN})

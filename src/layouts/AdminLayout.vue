@@ -1,6 +1,6 @@
 <template>
   <div class="adminLayout">
-    <a-layout >
+    <a-layout>
       <a-layout-header class="header">
         <div class="nav-bar">
           <a-menu class="menu" mode="horizontal" :selected-keys="selectKeys"
@@ -15,15 +15,18 @@
             </a-menu-item>
             <a-menu-item key="/menu/study">学习</a-menu-item>
             <a-menu-item key="/menu/problems">题库</a-menu-item>
-<!--            <a-menu-item key="/menu/contest">竞赛</a-menu-item>-->
+            <!--            <a-menu-item key="/menu/contest">竞赛</a-menu-item>-->
             <a-menu-item key="/menu/circle">讨论</a-menu-item>
-            <a-menu-item key="/admin/userManage/userInfo" v-if="loginUser.userRole === ACCESS_ENUM.ADMIN">管理后台</a-menu-item>
+            <a-menu-item key="/admin/userManage/userInfo" v-if="loginUser.userRole === ACCESS_ENUM.ADMIN">管理后台
+            </a-menu-item>
           </a-menu>
           <div class="right">
             <div v-if="loginUser.userRole !== ACCESS_ENUM.NOT_LOGIN" style="display: flex;align-items: center">
               <a-dropdown @select="handleSelect">
-                <a-avatar  class="avatar">
+                <a-avatar class="avatar">
+                  <IconUser v-if="!Boolean(loginUser.userAvatar)"/>
                   <img
+                      v-else
                       alt="avatar"
                       :src="loginUser.userAvatar"
                   />
@@ -73,17 +76,17 @@
       </a-layout-header>
       <a-layout>
         <a-layout-sider class="side" style="width: v-bind(sideWidth)">
-          <SideVue  @updateWidth="updateWidth"></SideVue>
+          <SideVue @updateWidth="updateWidth"></SideVue>
         </a-layout-sider>
         <a-layout-content class="content">
           <a-scrollbar style="height:90vh;overflow: auto;">
-            <div >
+            <div>
               <div class="breadcrumb">
                 <a-breadcrumb>
                   <a-breadcrumb-item>
-                    <icon-apps />
+                    <icon-apps/>
                   </a-breadcrumb-item>
-                  <a-breadcrumb-item v-for="item in breadcrumb">{{item}}</a-breadcrumb-item>
+                  <a-breadcrumb-item v-for="item in breadcrumb">{{ item }}</a-breadcrumb-item>
                 </a-breadcrumb>
               </div>
               <router-view class="router-view"></router-view>
@@ -105,6 +108,7 @@ import {LOGOUT} from "@/service/api/userApi.js";
 import {STATUS_CODE} from "@/common/status.js";
 import {SUCCESS} from "@/utils/message.js";
 import SideVue from "@/components/SideVue.vue";
+
 const router = useRouter();
 const loginUser = computed(() => {
   return store.getters.userInfo;
@@ -141,7 +145,7 @@ watch(() => route.path, (val) => {
   getBreadcrumb()
 })
 
-const getBreadcrumb = () =>{
+const getBreadcrumb = () => {
   breadcrumb.value = []
   const pathSplit = route.path.split('/')
 // 遍历pathSplit，将每个path对应的中文名字放入breadcrumb中
@@ -160,15 +164,15 @@ const onClick = (key) => {
 
 const handleSelect = (v) => {
 
-  switch (v){
+  switch (v) {
     case '0':
-      router.push({path:'/user/userInfo'})
+      router.push({path: '/user/userInfo'})
       break;
     case '1':
-      router.push({path:'/user/userSetting'})
+      router.push({path: '/user/userSetting'})
       break;
     case '2':
-      router.push({path:'/user/accountSecurity'})
+      router.push({path: '/user/accountSecurity'})
       break;
     case '3':
       LOGOUT().then(res => {
@@ -197,13 +201,15 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.adminLayout{
+.adminLayout {
   width: 100%;
   height: 100vh;
+
   .header {
     border-bottom: 1px solid #00000014;
     width: 100%;
     height: 50px;
+
     .nav-bar {
       height: 100%;
       display: flex;
@@ -237,9 +243,11 @@ onMounted(() => {
 
 
         }
+
         :deep(.arco-menu-inner) {
           overflow: unset;
         }
+
         .arco-menu-item {
           color: rgba(0, 0, 0, 0.55);
           line-height: 1.5;
@@ -309,15 +317,18 @@ onMounted(() => {
     }
 
   }
+
   .content {
     background: #F2F3F5;
     min-height: calc(100vh - 51px);
-    .breadcrumb{
+
+    .breadcrumb {
       margin: 16px auto;
       max-width: 90%;
     }
-    .router-view{
-      max-height:100%;
+
+    .router-view {
+      max-height: 100%;
       max-width: 90%;
       margin-left: auto;
       margin-right: auto;
@@ -325,6 +336,7 @@ onMounted(() => {
   }
 
 }
+
 .dropdown-item {
   display: flex;
   align-items: center;
@@ -333,7 +345,6 @@ onMounted(() => {
     margin-right: 8px;
   }
 }
-
 
 
 </style>

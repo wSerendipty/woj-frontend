@@ -33,7 +33,6 @@
         </template>
         <template #title>帖子管理</template>
         <a-menu-item key="/admin/postManage/postInfo">帖子信息</a-menu-item>
-        <a-menu-item key="/admin/postManage/tagManage">标签管理</a-menu-item>
         <a-sub-menu key="/admin/postManage/postComment">
           <template #icon>
             <icon-message/>
@@ -42,6 +41,7 @@
           <a-menu-item key="/admin/postManage/postComment/commentInfo">评论信息</a-menu-item>
         </a-sub-menu>
       </a-sub-menu>
+      <a-menu-item key="/admin/tagManage">标签管理</a-menu-item>
       <a-sub-menu key="/admin/contestManage">
         <template #icon>
           <icon-bar-chart/>
@@ -66,6 +66,7 @@
 import {onMounted, ref, watch} from 'vue';
 import {useRoute} from "vue-router";
 import router from "@/router";
+
 const menuWidth = ref(60);
 const emit = defineEmits(['updateWidth']);
 const onCollapse = (val, type) => {
@@ -97,7 +98,7 @@ onMounted(() => {
 <style scoped>
 .menu-demo {
 
-//width: 100%; height: 100%;
+  //width: 100%; height: 100%;
   background-color: var(--color-neutral-2);
 
   .arco-menu {
