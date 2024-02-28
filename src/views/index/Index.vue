@@ -33,7 +33,9 @@
         <div class="item" v-for="(item,index) in posts">
           <div class="item-top" @click="toDiscuss(item.id)">
             <a-avatar :size="28">
+              <IconUser v-if="!Boolean(item.user.userAvatar)"/>
               <img
+                  v-else
                   alt="avatar"
                   :src="item.user.userAvatar"
               />
@@ -172,6 +174,7 @@ import store from "@/store/index.js";
 import {ACCESS_ENUM} from "@/access/accessEnum.js";
 import {formatTime} from "@/utils/dateParse.js";
 import _ from "lodash";
+import {GET_QUESTION_SUBMIT_LIST} from "@/service/api/questionSubmitApi.js";
 
 
 const pageRequest = {
@@ -238,8 +241,9 @@ const hoverFlag = ref(false)
 const questionFinish = ref([])
 
 const questionStatusQueryRequest = {
-  type: "normal"
+  type: ""
 }
+
 
 const getQuestionFinish = () => {
   GET_QUESTION_FINISH(questionStatusQueryRequest).then(res => {

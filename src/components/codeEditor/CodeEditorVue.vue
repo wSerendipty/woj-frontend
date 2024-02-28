@@ -16,6 +16,8 @@ import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
 import {computed, onMounted, ref, toRaw, watch} from 'vue';
 import {Languages} from "@/common/language/languageConstants.js";
 import store from "@/store/index.js";
+import QuestionTemplate from "@/common/question/questionTemplate.js";
+import {value} from "lodash/seq.js";
 
 const props = defineProps({
   value: {
@@ -53,14 +55,24 @@ const editorRef = ref(null);
 
 const codeEditor = ref(null);
 const languages = computed(() => {
-  return store.getters.questionInfo.questionTemplates.map(item => item.language);
+  const questionTemplates = store.getters.questionInfo.questionTemplates;
+  if (Boolean(questionTemplates) && questionTemplates.length > 0 ){
+    return questionTemplates.map(item => item.language);
+  }else {
+   return Languages;
+  }
 });
 
 const template = computed(() => {
-  return store.getters.questionInfo.questionTemplates;
+   const questionTemplates = store.getters.questionInfo.questionTemplates;
+    if (Boolean(questionTemplates) && questionTemplates.length > 0 ){
+      return questionTemplates;
+    }else {
+      return QuestionTemplate;
+    }
 })
 
-const languageHandle = ref(languages.value[0] || 'java')
+const languageHandle = ref( props.value.language ? props.value.language: languages.value[0] || 'java')
 
 
 watch(() => languageHandle.value, (val) => {
@@ -111,6 +123,7 @@ onMounted(() => {
 
   // 编辑 监听内容变化
   codeEditor.value.onDidChangeModelContent(() => {
+    toRaw(codeEditor.value).trigger(null, "editor.action.formatDocument");
     props.onChange(toRaw(codeEditor.value).getValue())
   })
 });

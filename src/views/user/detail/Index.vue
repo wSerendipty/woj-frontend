@@ -4,7 +4,12 @@
       <div class="user">
         <div class="avatar">
           <a-avatar :size="90" shape="square">
-            <img :src="user.userAvatar" alt="avatar">
+            <IconUser v-if="!Boolean(user.userAvatar)"/>
+            <img
+                v-else
+                alt="avatar"
+                :src="user.userAvatar"
+            />
           </a-avatar>
         </div>
         <div class="detail">
@@ -15,36 +20,36 @@
       </div>
     </div>
     <div class="bottom">
-      <div class="choose">
-        <div class="item" @click="chooseHandel(item)" :class="chooseLabel===item.key?'active':''"
-             v-for="item in chooseList">{{ item.name }}
-        </div>
+      <div class="left">
+        <a-button class="profileBtn" type="secondary" status="success" @click="router.push({
+          path: '/user/profile',
+        })">编辑个人资料</a-button>
       </div>
-      <a-list :bordered="false" :max-height="600" @reachBottom="onBottom" :data="data">
-        <template #item="{ item }">
-          <a-list-item >
-            <a-list-item-meta
-            >
-              <template #description>
-                <div>{{ item.description }}</div>
-              </template>
-<!--              <template #avatar>-->
-<!--                <a-avatar shape="square">-->
-<!--                  <img-->
-<!--                      alt="avatar"-->
-<!--                      :src="item.avatar"-->
-<!--                  />-->
-<!--                </a-avatar>-->
-<!--              </template>-->
-            </a-list-item-meta>
-<!--            <template #actions>-->
-<!--              <icon-edit/>-->
-<!--              <icon-delete/>-->
-<!--            </template>-->
-          </a-list-item>
-        </template>
+      <div class="right">
+        <div class="choose">
+          <div class="item" @click="chooseHandel(item)" :class="chooseLabel===item.key?'active':''"
+               v-for="item in chooseList">{{ item.name }}
+          </div>
+        </div>
+        <a-list :bordered="false" :max-height="500" @reachBottom="onBottom" :data="data">
+          <template #item="{ item }">
+            <a-list-item>
+              <a-list-item-meta
+              >
+                <template #description>
+                  <div class="description"
+                       @click="toOther(item.id)">
+                    <div>{{ item.id }}. {{ item.title }}</div>
+                    <div class="createTime">{{ formatTime(item.createTime, 1) }}</div>
+                  </div>
+                </template>
+              </a-list-item-meta>
+            </a-list-item>
+          </template>
 
-      </a-list>
+        </a-list>
+      </div>
+
     </div>
 
   </div>
@@ -53,7 +58,14 @@
 
 <script setup>
 import store from "@/store/index.js";
-import {computed, reactive, ref} from "vue";
+import {computed, onMounted, reactive, ref} from "vue";
+import {GET_QUESTION_SUBMIT_LIST} from "@/service/api/questionSubmitApi.js";
+import {GET_PAGE_FAVOUR_POST_LIST, GET_PAGE_MY_POST_LIST} from "@/service/api/postApi.js";
+import {STATUS_CODE} from "@/common/status.js";
+import {WARNING} from "@/utils/message.js";
+import router from "@/router/index.js";
+import {formatTime} from "@/utils/dateParse.js";
+
 const user = computed(() => {
   return store.getters.userInfo
 })
@@ -69,89 +81,259 @@ const chooseLabel = ref(chooseList.value[0].key)
 
 const chooseHandel = (item) => {
   chooseLabel.value = item.key
+  switch (item.key) {
+    case 'submit':
+      getSubmitRecord(true)
+      break
+    case 'solution':
+      getSolution(true)
+      break
+    case 'post':
+      getPost(true)
+      break
+    case 'favour':
+      getFavour(true)
+      break
+  }
 }
 
-const pageRequest = reactive({
+const pageRequest = {
   page: 1,
   pageSize: 10,
   total: 0,
+  sortField: "createTime",
+  sortOrder: "",
+}
+
+const questionSubmitRequest = reactive({
+  ...pageRequest,
+  userId: "1" //任意值即可，都查询的是登陆用户的提交记录
 })
 
-const data = ref([
-  {
-    title: 'Beijing Bytedance Technology Co., Ltd.',
-    description: 'Beijing ByteDance Technology Co., Ltd. is an enterprise located in China.',
-    avatar: 'https://p1-arco.byteimg.com/tos-cn-i-uwbnlip3yd/3ee5f13fb09879ecb5185e440cef6eb9.png~tplv-uwbnlip3yd-webp.webp'
-  },
-  {
-    title: 'Beijing Bytedance Technology Co., Ltd.',
-    description: 'Beijing ByteDance Technology Co., Ltd. is an enterprise located in China.',
-    avatar: 'https://p1-arco.byteimg.com/tos-cn-i-uwbnlip3yd/3ee5f13fb09879ecb5185e440cef6eb9.png~tplv-uwbnlip3yd-webp.webp'
-  },
-  {
-    title: 'Beijing Bytedance Technology Co., Ltd.',
-    description: 'Beijing ByteDance Technology Co., Ltd. is an enterprise located in China.',
-    avatar: 'https://p1-arco.byteimg.com/tos-cn-i-uwbnlip3yd/3ee5f13fb09879ecb5185e440cef6eb9.png~tplv-uwbnlip3yd-webp.webp'
-  },
-  {
-    title: 'Beijing Bytedance Technology Co., Ltd.',
-    description: 'Beijing ByteDance Technology Co., Ltd. is an enterprise located in China.',
-    avatar: 'https://p1-arco.byteimg.com/tos-cn-i-uwbnlip3yd/3ee5f13fb09879ecb5185e440cef6eb9.png~tplv-uwbnlip3yd-webp.webp'
-  },
-  {
-    title: 'Beijing Bytedance Technology Co., Ltd.',
-    description: 'Beijing ByteDance Technology Co., Ltd. is an enterprise located in China.',
-    avatar: 'https://p1-arco.byteimg.com/tos-cn-i-uwbnlip3yd/3ee5f13fb09879ecb5185e440cef6eb9.png~tplv-uwbnlip3yd-webp.webp'
-  },
-  {
-    title: 'Beijing Bytedance Technology Co., Ltd.',
-    description: 'Beijing ByteDance Technology Co., Ltd. is an enterprise located in China.',
-    avatar: 'https://p1-arco.byteimg.com/tos-cn-i-uwbnlip3yd/3ee5f13fb09879ecb5185e440cef6eb9.png~tplv-uwbnlip3yd-webp.webp'
-  },
-  {
-    title: 'Beijing Bytedance Technology Co., Ltd.',
-    description: 'Beijing ByteDance Technology Co., Ltd. is an enterprise located in China.',
-    avatar: 'https://p1-arco.byteimg.com/tos-cn-i-uwbnlip3yd/3ee5f13fb09879ecb5185e440cef6eb9.png~tplv-uwbnlip3yd-webp.webp'
-  },
-])
+const questionSolutionRequest = reactive({
+  ...pageRequest,
+  userId: "1" //任意值即可，都查询的是登陆用户的题解
+})
+
+const postRequest = reactive({
+  ...pageRequest,
+})
+
+const favourRequest = reactive({
+  ...pageRequest,
+})
+
+
+const data = ref([])
 
 const onBottom = () => {
+  switch (chooseLabel.value) {
+    case 'submit':
+      questionSubmitRequest.page++
+      getSubmitRecord(false)
+      break
+    case 'solution':
+      questionSolutionRequest.page++
+      getSolution(false)
+      break
+    case 'post':
+      postRequest.page++
+      getPost(false)
+      break
+    case 'favour':
+      favourRequest.page++
+      getFavour(false)
+      break
+  }
   console.log("到底了")
 }
 
-
-
-const getUserById = () => {
-  console.log(user)
-  store.dispatch('getUserById', user.value.id)
+const toOther = (id) => {
+  switch (chooseLabel.value) {
+    case 'submit':
+      router.push({
+        path: '/problem/do',
+        query: {
+          name: "detail",
+          type: "normal",
+          id: id
+        }
+      })
+      break
+    case 'solution':
+      router.push({
+        path: '/problem/do',
+        query: {
+          name: "solution",
+          type: "normal",
+          id: id
+        }
+      })
+      break
+    case 'post':
+      router.push({
+        path: "/discuss",
+        query: {
+          id: id
+        }
+      })
+      break
+    case 'favour':
+      router.push({
+        path: "/discuss",
+        query: {
+          id: id
+        }
+      })
+      break
+  }
 }
 
-const getSubmitRecord = () => {
+
+const getUserById = async () => {
+  await store.dispatch('getUserById', user.value.id)
+}
+
+const getSubmitRecord = (reset) => {
+  if (reset) {
+    questionSubmitRequest.page = 1
+    questionSubmitRequest.total = 0
+    data.value = []
+  }
+  if (questionSubmitRequest.total < data.value.length) {
+    WARNING("没有更多数据了")
+    return
+  }
+  GET_QUESTION_SUBMIT_LIST(questionSubmitRequest).then(res => {
+    if (res.code === STATUS_CODE.SUCCESS_CODE) {
+      questionSubmitRequest.total = res.data.total
+      if (reset) {
+        data.value = res.data.records.map(item => {
+          return {
+            id: item.questionVO.id,
+            title: item.questionVO.title,
+            createTime: item.createTime
+          }
+        })
+      } else {
+        data.value.push(...res.data.records.map(item => {
+          return {
+            id: item.questionVO.id,
+            title: item.questionVO.title,
+            createTime: item.createTime
+          }
+        }))
+      }
+    }
+    console.log(res)
+  }).catch(err => {
+    console.log(err)
+  })
   console.log('提交记录')
 }
 
-const getSolution = () => {
+const getSolution = (reset) => {
+  if (reset) {
+    questionSolutionRequest.page = 1
+    questionSolutionRequest.total = 0
+    data.value = []
+  }
+  if (questionSolutionRequest.total < data.value.length) {
+    WARNING("没有更多数据了")
+    return
+  }
   console.log('个人题解')
 }
 
-const getPost = () => {
+const getPost = (reset) => {
+  if (reset) {
+    postRequest.page = 1
+    postRequest.total = 0
+    data.value = []
+  }
+  if (postRequest.total < data.value.length) {
+    WARNING("没有更多数据了")
+    return
+  }
+  GET_PAGE_MY_POST_LIST(postRequest).then(res => {
+    if (res.code === STATUS_CODE.SUCCESS_CODE) {
+      postRequest.total = res.data.total
+      if (reset) {
+        data.value = res.data.records.map(item => {
+          return {
+            id: item.id,
+            title: item.title,
+            createTime: item.createTime
+          }
+        })
+      } else {
+        data.value.push(...res.data.records.map(item => {
+          return {
+            id: item.id,
+            title: item.title,
+            createTime: item.createTime
+          }
+        }))
+      }
+    }
+    console.log(res)
+  }).catch(err => {
+    console.log(err)
+  })
   console.log('贴子发布')
 }
 
-const getFavour = () => {
+const getFavour = (reset) => {
+  if (reset) {
+    favourRequest.page = 1
+    favourRequest.total = 0
+    data.value = []
+  }
+  if (favourRequest.total < data.value.length) {
+    WARNING("没有更多数据了")
+    return
+  }
+  GET_PAGE_FAVOUR_POST_LIST(favourRequest).then(res => {
+    if (res.code === STATUS_CODE.SUCCESS_CODE) {
+      favourRequest.total = res.data.total
+      if (reset) {
+        data.value = res.data.records.map(item => {
+          return {
+            id: item.id,
+            title: item.title,
+            createTime: item.createTime
+          }
+        })
+      } else {
+        data.value.push(...res.data.records.map(item => {
+          return {
+            id: item.id,
+            title: item.title,
+            createTime: item.createTime
+          }
+        }))
+      }
+    }
+    console.log(res)
+  }).catch(err => {
+    console.log(err)
+  })
   console.log('帖子收藏')
 }
+
+onMounted( async () => {
+  await getUserById()
+  getSubmitRecord(true)
+})
 
 
 </script>
 
 <style lang="scss" scoped>
 .userDetail {
-  width: 100%;
   min-height: 100vh;
-  max-width: 1200px;
   padding-left: 120px;
-  padding-right: 70px;
+  padding-right: 120px;
   padding-bottom: 50px;
   background: #F7F8FA;
 
@@ -202,32 +384,69 @@ const getFavour = () => {
   }
 
   .bottom {
+    display: flex;
     margin-top: 30px;
-    background: #ffffff;
-    padding: 10px;
-    border-radius: 6px;
-    min-height: 600px;
-
-    .choose {
+    .left {
+      border-radius: 6px;
       display: flex;
-      margin-bottom: 10px;
+      padding-top: 20px;
+      justify-content: center;
+      height: 80px;
+      background: #ffffff;
+      width: 20%;
+      margin-right: 2%;
+      .profileBtn{
+        width: 90%;
+        border-radius: 5px;
+      }
+    }
 
-      .item {
-        padding: 10px 20px;
-        border-radius: 6px;
+    .right {
+      padding: 10px;
+      border-radius: 6px;
+      min-height: 500px;
+      width: 75%;
+      background: #ffffff;
+
+      .choose {
+        display: flex;
+        margin-bottom: 10px;
+
+        .item {
+          padding: 10px 20px;
+          border-radius: 6px;
+          cursor: pointer;
+          margin-left: 10px;
+
+          &:hover {
+            background: #F7F8FA;
+          }
+
+          &.active {
+            background: #1890FF;
+            color: #fff;
+          }
+        }
+      }
+
+      .description {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
         cursor: pointer;
-        margin-left: 10px;
+        width: 800px;
 
         &:hover {
-          background: #F7F8FA;
+          color: #1890FF;
         }
 
-        &.active {
-          background: #1890FF;
-          color: #fff;
+        .createTime {
+          color: #3c3c4399;
+          font-size: 14px;
         }
       }
     }
+
   }
 }
 

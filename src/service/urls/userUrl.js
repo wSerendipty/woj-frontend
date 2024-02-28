@@ -1,8 +1,6 @@
 export default {
     /**登录地址 */
     loginUrl: "/user/login",
-    /**重置密码 */
-    resetPassword: "/user/password",
     /**注册地址 */
     registerUrl: "/user/register",
     /**退出登录 */
@@ -21,4 +19,6 @@ export default {
     updateUserUrl:"/user/update",
     /**编辑用户 （非管理员）*/
     editUserUrl:"/user/edit",
+    /**修改密码 */
+    editPasswordUrl:"/user/edit/password",
 }

@@ -1,4 +1,4 @@
-import {GET, POST} from "../../utils/axios.js";
+import {GET, POST} from "@/utils/axios.js";
 import userUrl from "../urls/userUrl.js";
 
 /**
@@ -71,6 +71,13 @@ export function UPDATE_USER(data) {
  */
 export function EDIT_USER(data) {
     return POST(userUrl.editUserUrl, data)
+}
+
+/**
+ * 修改密码
+ */
+export function EDIT_PASSWORD(data) {
+    return POST(userUrl.editPasswordUrl, data)
 }
 
 

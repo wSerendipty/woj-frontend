@@ -12,6 +12,27 @@ export function GET_PAGE_POST_LIST(pageRequest) {
 }
 
 /**
+ * 分页获取自己发布的帖子
+ * @param pageRequest
+ * @returns {Promise}
+ * @constructor
+ */
+export function GET_PAGE_MY_POST_LIST(pageRequest) {
+    return POST(postUrl.getMyPostListUrl, pageRequest)
+
+}
+
+/**
+ * 分页获取收藏的帖子
+ * @param pageRequest
+ * @returns {Promise}
+ * @constructor
+ */
+export function GET_PAGE_FAVOUR_POST_LIST(pageRequest) {
+    return POST(postUrl.getFavourPostListUrl, pageRequest)
+}
+
+/**
  * 点赞文章
  * @param postId
  * @returns {Promise}

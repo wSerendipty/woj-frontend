@@ -34,7 +34,9 @@
         <div class="item" v-for="(item) in posts">
           <div class="item-top">
             <a-avatar :size="28">
+              <IconUser v-if="!Boolean(item.user.userAvatar)"/>
               <img
+                  v-else
                   alt="avatar"
                   :src="item.user.userAvatar"
               />
@@ -112,7 +114,9 @@
             <div>
               <div class="item-top">
                 <a-avatar :size="25">
+                  <IconUser v-if="!Boolean(item.user.userAvatar)"/>
                   <img
+                      v-else
                       alt="avatar"
                       :src="item.user.userAvatar"
                   />

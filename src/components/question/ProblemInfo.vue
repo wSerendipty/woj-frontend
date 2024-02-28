@@ -188,7 +188,7 @@ onMounted(() => {
 
   .bottom {
     align-items: center;
-    height: 50px;
+    height: 40px;
     position: sticky;
     bottom: 0;
     background: #ffffff;

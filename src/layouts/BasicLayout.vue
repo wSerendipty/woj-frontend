@@ -15,17 +15,18 @@
             </a-menu-item>
             <a-menu-item key="/menu/study">学习</a-menu-item>
             <a-menu-item key="/menu/problems">题库</a-menu-item>
-<!--            <a-menu-item key="/menu/contest">竞赛</a-menu-item>-->
+            <!--            <a-menu-item key="/menu/contest">竞赛</a-menu-item>-->
             <a-menu-item key="/menu/circle">讨论</a-menu-item>
-            <a-menu-item key="/admin/userManage/userInfo" v-if="loginUser.userRole === ACCESS_ENUM.ADMIN">管理后台</a-menu-item>
+            <a-menu-item key="/admin/userManage/userInfo" v-if="loginUser.userRole === ACCESS_ENUM.ADMIN">管理后台
+            </a-menu-item>
           </a-menu>
           <div class="right">
-<!--            <a-input-search class="search" placeholder="搜索"/>-->
+            <!--            <a-input-search class="search" placeholder="搜索"/>-->
             <!--            <icon-search class="icon"/>-->
             <div v-if="loginUser.userRole !== ACCESS_ENUM.NOT_LOGIN" style="display: flex;align-items: center">
               <icon-notification class="icon"/>
               <a-dropdown @select="handleSelect">
-                <a-avatar class="avatar" >
+                <a-avatar class="avatar">
                   <IconUser v-if="!Boolean(loginUser.userAvatar)"/>
                   <img
                       v-else
@@ -43,7 +44,7 @@
                   <a-doption value="1">
                     <div class="dropdown-item">
                       <icon-settings class="icon"/>
-                      用户设置
+                      用户简介
                     </div>
                   </a-doption>
                   <a-doption value="2">
@@ -122,36 +123,32 @@ const onClick = (key) => {
 
 const handleSelect = (v) => {
 
-  switch (v){
+  switch (v) {
     case '0':
-      router.push({path:'/user/detail'})
+      router.push({path: '/user/detail'})
       break;
     case '1':
-      router.push({path:'/user/profile'})
+      router.push({path: '/user/profile'})
       break;
     case '2':
-      router.push({path:'/user/safe'})
+      router.push({
+        path: '/user/profile',
+        query: {
+          name: 'safe'
+        }
+      })
       break;
     case '3':
-      LOGOUT().then(res => {
+      store.dispatch('logOut').then(res => {
         if (res.code === STATUS_CODE.SUCCESS_CODE) {
-          SUCCESS("注销成功")
-          store.dispatch('getUserInfo')
+          SUCCESS("登出成功！")
         }
       })
       break;
     default
-      :
+    :
       break;
   }
-/*  if (v === 2) {
-    LOGOUT().then(res => {
-      if (res.code === STATUS_CODE.SUCCESS_CODE) {
-        SUCCESS("注销成功")
-        store.dispatch('getUserInfo')
-      }
-    })
-  }*/
 }
 </script>
 

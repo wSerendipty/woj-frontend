@@ -5,7 +5,9 @@
         <div class="post">
           <div class="user">
             <a-avatar>
+              <IconUser v-if="!Boolean(post.user.userAvatar)"/>
               <img
+                  v-else
                   alt="avatar"
                   :src="post.user.userAvatar"
               />
@@ -56,7 +58,9 @@
         <div class="reply-item" v-for="item in commentList">
           <div class="user">
             <a-avatar>
+              <IconUser v-if="!Boolean(item.createUser.userAvatar)"/>
               <img
+                  v-else
                   alt="avatar"
                   :src="item.createUser.userAvatar"
               />
@@ -101,7 +105,9 @@
                     <div class="children-top">
                       <div class="user">
                         <a-avatar :size="22">
+                          <IconUser v-if="!Boolean(item.createUser.userAvatar)"/>
                           <img
+                              v-else
                               alt="avatar"
                               :src="item.createUser.userAvatar"
                           />

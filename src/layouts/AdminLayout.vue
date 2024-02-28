@@ -23,7 +23,7 @@
           <div class="right">
             <div v-if="loginUser.userRole !== ACCESS_ENUM.NOT_LOGIN" style="display: flex;align-items: center">
               <a-dropdown @select="handleSelect">
-                <a-avatar class="avatar">
+                <a-avatar class="avatar" shape="circle">
                   <IconUser v-if="!Boolean(loginUser.userAvatar)"/>
                   <img
                       v-else
@@ -41,7 +41,7 @@
                   <a-doption value="1">
                     <div class="dropdown-item">
                       <icon-settings class="icon"/>
-                      用户设置
+                      用户简介
                     </div>
                   </a-doption>
                   <a-doption value="2">
@@ -166,19 +166,23 @@ const handleSelect = (v) => {
 
   switch (v) {
     case '0':
-      router.push({path: '/user/userInfo'})
+      router.push({path: '/user/detail'})
       break;
     case '1':
-      router.push({path: '/user/userSetting'})
+      router.push({path: '/user/profile'})
       break;
     case '2':
-      router.push({path: '/user/accountSecurity'})
+      router.push({
+        path: '/user/profile',
+        query: {
+          name: 'safe'
+        }
+      })
       break;
     case '3':
-      LOGOUT().then(res => {
+      store.dispatch('logOut').then(res => {
         if (res.code === STATUS_CODE.SUCCESS_CODE) {
-          SUCCESS("注销成功")
-          store.dispatch('getUserInfo')
+          SUCCESS("登出成功！")
         }
       })
       break;

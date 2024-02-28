@@ -8,7 +8,7 @@
         返回
       </a-button>
       <div class="operator">
-        <a-button class="run" @click="run" :disabled="runLoading || submitLoading">
+        <a-button class="run" :class="runLoading?'big':''" @click="run" v-if="!submitLoading">
           <template #icon>
             <icon-caret-right v-if="!runLoading"/>
             <icon-refresh v-if="runLoading" spin/>
@@ -16,7 +16,7 @@
           <span v-if="!runLoading && !submitLoading">运行</span>
           <span v-if="runLoading">运行中</span>
         </a-button>
-        <a-button class="submit" @click="submit" :disabled="submitLoading || runLoading">
+        <a-button class="submit" :class="submitLoading?'big':''" @click="submit" v-if="!runLoading">
           <template #icon>
             <icon-upload v-if="!submitLoading"/>
             <icon-refresh v-if="submitLoading" spin/>
@@ -32,31 +32,32 @@
     <div class="bottom">
       <div class="left">
         <div class="top">
-          <a-breadcrumb separator="|">
+          <a-breadcrumb class="breadcrumb" separator="|">
             <a-breadcrumb-item>
               <div class="breadcrumb-item" @click="toPath(0)">
                 <icon-bookmark class="icon" :style="currentIndex===0?{color:'#007BFF'}:''"/>
-                题目描述
+                <span :class="currentIndex===0?'select':''">题目描述</span>
               </div>
             </a-breadcrumb-item>
             <a-breadcrumb-item>
               <div class="breadcrumb-item" @click="toPath(1)">
                 <icon-subscribe-add class="icon" :style="currentIndex===1?{color:'#007BFF'}:''"/>
-                题解
+                <span :class="currentIndex===1?'select':''">题解</span>
               </div>
 
             </a-breadcrumb-item>
             <a-breadcrumb-item>
               <div class="breadcrumb-item" @click="toPath(2)">
                 <icon-schedule class="icon" :style="currentIndex===2?{color:'#007BFF'}:''"/>
-                提交记录
+                <span v-if="currentIndex===2" :style="currentIndex===2?{color:'rgb( 29,33,41 )'}:''">提交记录</span>
+                <span v-else :class="currentIndex!==2?'noSelect':''">提交记录</span>
               </div>
 
             </a-breadcrumb-item>
           </a-breadcrumb>
         </div>
         <div class="other">
-          <a-scrollbar style="height:530px;overflow: auto;">
+          <a-scrollbar style="height:580px;overflow: auto;">
             <!--            <ProblemInfo v-if="route.query.name === 'detail'" :questionInfo="questionInfo"/>-->
             <KeepAlive>
               <component :is="currentComponent"></component>
@@ -142,6 +143,10 @@
                              v-if="JUDGE_INFO_STATUS_ENUM.WRONG_ANSWER === runResult.judgeInfo.status">
                           {{ runResult.judgeInfo.message }}
                         </div>
+                        <div class="status wrong"
+                             v-if="JUDGE_INFO_STATUS_ENUM.RUNTIME_ERROR === runResult.judgeInfo.status">
+                          {{ runResult.judgeInfo.message }}
+                        </div>
                         <div class="status compile-error"
                              v-if="JUDGE_INFO_STATUS_ENUM.COMPILE_ERROR === runResult.judgeInfo.status">
                           {{ runResult.judgeInfo.message }}
@@ -150,7 +155,9 @@
                              v-if="JUDGE_INFO_STATUS_ENUM.TIME_LIMIT_EXCEEDED === runResult.judgeInfo.status">
                           {{ runResult.judgeInfo.message }}
                         </div>
-                        <div class="time">执行用时: {{ Boolean(runResult.judgeInfo.time)? runResult.judgeInfo.time : 'NULL' }} ms</div>
+                        <div class="time">执行用时:
+                          {{ Boolean(runResult.judgeInfo.time) ? runResult.judgeInfo.time : 'NULL' }} ms
+                        </div>
                       </div>
                       <div class="bottom" v-if="Boolean(runResult.judgeInfo.input)">
                         <div class="tags">
@@ -516,8 +523,15 @@ onMounted(() => {
         font-weight: 500;
         border-radius: 5px;
         margin-right: 10px;
+        margin-left: 30px;
         width: 120px;
         background: #E7E7E7;
+        animation: .5s;
+
+        &.big {
+          width: 220px;
+          margin-left: 40px;
+        }
 
         &:hover {
           background: #BDBBBB80;
@@ -531,6 +545,11 @@ onMounted(() => {
         border-radius: 5px;
         width: 120px;
         background: #E7E7E7;
+
+        &.big {
+          width: 220px;
+          margin-left: 40px;
+        }
 
         &:hover {
           background: #BDBBBB80;
@@ -554,21 +573,31 @@ onMounted(() => {
 
       .top {
         position: sticky;
-        background: #FAFAFA;
 
-        .breadcrumb-item {
-          cursor: pointer;
+        .breadcrumb {
+          .breadcrumb-item {
+            cursor: pointer;
 
-          .icon {
-            margin-right: 5px;
-            color: #96C7FC;
-            font-size: 16px;
+            .icon {
+              margin-right: 5px;
+              color: #96C7FC;
+              font-size: 16px;
+            }
+            .select {
+              color: #3c3c43;
+              font-weight: 500;
+            }
+            .noSelect {
+              color: #3c3c43;
+              font-weight: normal;
+            }
           }
         }
+
+
       }
 
       .other {
-        //height: 95%;
         width: 100%;
       }
     }

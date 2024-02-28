@@ -20,6 +20,7 @@
 import {ref} from 'vue';
 import {UPLOAD_IMAGE} from "@/service/api/fileApi.js";
 import {SUCCESS} from "@/utils/message.js";
+import {fileEnum} from "@/common/file/fileEnum.js";
 
 const props = defineProps({
   value: {
@@ -53,7 +54,7 @@ const handleUploadImage = async (event, insertImage, files) => {
   // 拿到 files 之后上传到文件服务器，然后向编辑框中插入对应的内容
   const formData = new FormData();
   formData.append('file', files[0]);
-  formData.append('biz', "md_image")
+  formData.append('biz', fileEnum.COMMENT_IMAGE)
   //你自己的上传文件接口
   let res = await UPLOAD_IMAGE(formData);
   insertImage({

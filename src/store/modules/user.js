@@ -1,5 +1,5 @@
 import {ACCESS_ENUM} from "@/access/accessEnum.js";
-import {GET_LOGIN_USER, GET_USER_BY_ID} from "@/service/api/userApi.js";
+import {EDIT_USER, GET_LOGIN_USER, GET_USER_BY_ID, LOGOUT} from "@/service/api/userApi.js";
 import {STATUS_CODE} from "@/common/status.js";
 
 
@@ -43,6 +43,21 @@ export default {
                     commit('set_user', res.data)
                 }
             })
+        },
+        async updateUserInfo({commit}, data) {
+            const res = await EDIT_USER(data)
+            if (res.code === STATUS_CODE.SUCCESS_CODE) {
+                commit('set_user', res.data)
+            }
+            return res
+        },
+
+        async logOut({commit}) {
+            const r = await LOGOUT()
+            if (r.code === STATUS_CODE.SUCCESS_CODE) {
+                commit('set_user', {userRole: ACCESS_ENUM.NOT_LOGIN})
+            }
+            return r
         }
     }
 }

@@ -41,7 +41,12 @@
           <a-menu-item key="/admin/postManage/postComment/commentInfo">评论信息</a-menu-item>
         </a-sub-menu>
       </a-sub-menu>
-      <a-menu-item key="/admin/tagManage">标签管理</a-menu-item>
+      <a-menu-item key="/admin/tagManage">
+        <template #icon>
+          <icon-apps></icon-apps>
+        </template>
+        标签管理
+      </a-menu-item>
       <a-sub-menu key="/admin/contestManage">
         <template #icon>
           <icon-bar-chart/>
