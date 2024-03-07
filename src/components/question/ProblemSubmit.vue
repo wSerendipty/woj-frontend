@@ -1,6 +1,6 @@
 <template>
   <div class="questionSubmit">
-    <a-table :columns="columns" :data="data" :sticky-header="100">
+    <a-table :columns="columns" :data="data" :sticky-header="100" :pagination="pagination" @page-change="pageChange">
       <template #status="{ record }">
         <span
             :style="record.status===JUDGE_INFO_STATUS_ENUM.ACCEPTED?{color:'green'}:{color:'red'}">{{ record.status }}</span>
@@ -10,7 +10,7 @@
 </template>
 <script setup>
 import {GET_QUESTION_SUBMIT_LIST} from "@/service/api/questionSubmitApi.js";
-import {onMounted, ref, watch} from "vue";
+import {onMounted, reactive, ref, watch} from "vue";
 import {STATUS_CODE} from "@/common/status.js";
 import {ERROR} from "@/utils/message.js";
 import {Languages} from "@/common/language/languageConstants.js";
@@ -86,19 +86,20 @@ const columns = [
     width: 150
   },
 ];
-const data = ref([
-  {
-    language: "C++",
-    message: "成功",
-    status: "Accepted",
-    memory: "1146880",
-    time: "17",
-  },
-]);
+
+const data = ref([]);
+
+const pagination = reactive({total: 0})
+
+const pageChange = (e) => {
+  questionSubmitQRequest.value.current = e
+  getQuestionSubmit()
+}
 
 const getQuestionSubmit = () => {
   GET_QUESTION_SUBMIT_LIST(questionSubmitQRequest.value).then(res => {
     if (res.code === STATUS_CODE.SUCCESS_CODE) {
+      pagination.total = Number(res.data.total)
       data.value = []
       // 遍历res.data.records 将其转换为data
       res.data.records.map(item => {

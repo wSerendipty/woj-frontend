@@ -1,107 +1,59 @@
-import postUrl from "../urls/postUrl.js";
 import {GET, POST} from "@/utils/axios.js";
+import solutionUrl from "../urls/solutionUrl.js";
 
 /**
- * 获取文章列表分页
- * @param pageRequest
- * @returns {Promise}
- * @constructor
+ * 分页获取题解列表
  */
-export function GET_PAGE_POST_LIST(pageRequest) {
-    return POST(postUrl.getPostListUrl, pageRequest)
+export function GET_PAGE_SOLUTION_LIST(pageRequest) {
+    return POST(solutionUrl.getSolutionListUrl, pageRequest)
 }
 
 /**
- * 分页获取自己发布的帖子
- * @param pageRequest
- * @returns {Promise}
- * @constructor
+ * 分页获取自己发布的题解
  */
-export function GET_PAGE_MY_POST_LIST(pageRequest) {
-    return POST(postUrl.getMyPostListUrl, pageRequest)
-
+export function GET_PAGE_MY_SOLUTION_LIST(pageRequest) {
+    return POST(solutionUrl.getMySolutionListUrl, pageRequest)
 }
 
 /**
- * 分页获取收藏的帖子
- * @param pageRequest
- * @returns {Promise}
- * @constructor
+ * 添加题解
  */
-export function GET_PAGE_FAVOUR_POST_LIST(pageRequest) {
-    return POST(postUrl.getFavourPostListUrl, pageRequest)
+export function ADD_SOLUTION(solution) {
+    return POST(solutionUrl.addSolutionUrl, solution)
 }
 
 /**
- * 点赞文章
- * @param postId
- * @returns {Promise}
- * @constructor
+ * 删除题解
  */
-export function THUMB_POST(postId) {
-    return POST(postUrl.thumbPostUrl , {postId:postId})
+
+export function DELETE_SOLUTION(solutionId) {
+    return POST(solutionUrl.deleteSolutionUrl, {id: solutionId})
 }
 
 /**
- * 收藏文章
- * @param postId
- * @returns {Promise}
- * @constructor
+ * 根据id获取题解
  */
-export function FAVOUR_POST(postId) {
-    return POST(postUrl.favourPostUrl , {postId:postId})
+export function GET_SOLUTION_BY_ID(solutionId) {
+    return GET(solutionUrl.getSolutionByIdUrl, {id: solutionId})
 }
 
 /**
- * 添加文章
- * @param post
- * @returns {Promise}
- * @constructor
+ * 编辑题解
  */
-export function ADD_POST(post) {
-    return POST(postUrl.addPostUrl , post)
+export function EDIT_SOLUTION(solution) {
+    return POST(solutionUrl.editSolutionUrl, solution)
 }
 
 /**
- * 删除文章
- * @param postId
- * @returns {Promise}
- * @constructor
+ * 更新题解（仅管理员）
  */
-export function DELETE_POST(postId) {
-    return POST(postUrl.deletePostUrl , {id:postId})
+export function UPDATE_SOLUTION(solution) {
+    return POST(solutionUrl.updateSolutionUrl, solution)
 }
 
 /**
- * 根据id获取文章
- * @param postId
- * @returns {Promise}
- * @constructor
- */
-export function GET_POST_BY_ID(postId) {
-    return GET(postUrl.getPostByIdUrl, {id: postId})
-}
-
-/**
- * 更新文章
- * @param post
- * @returns {Promise}
- * @constructor
- */
-export function UPDATE_POST(post) {
-    return POST(postUrl.updatePostUrl , post)
-}
-
-/**
- * 编辑文章
- */
-export function EDIT_POST(post) {
-    return POST(postUrl.editPostUrl , post)
-}
-
-/**
- * 根据点赞数取前10个帖子
+ * 根据点赞数取前10个题解
  */
 export function GET_TOP10_BY_THUMB() {
-    return GET(postUrl.getTop10ByThumbUrl)
+    return GET(solutionUrl.getTop10ByThumbUrl)
 }

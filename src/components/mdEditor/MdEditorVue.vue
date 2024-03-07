@@ -12,7 +12,7 @@
                   @change="handleChange">
           <a-option v-for="item in searchTagList">{{ item }}</a-option>
         </a-select>
-        <a-tag closable v-for="item in chooseTagList" style="border-radius: 10px;margin-left: 5px;"
+        <a-tag closable v-for="item in chooseTagList" :key="item" style="border-radius: 10px;margin-left: 5px;"
                @close="handleClose(item)">{{ item }}
         </a-tag>
       </div>
@@ -43,6 +43,7 @@ import {UPLOAD_IMAGE} from "@/service/api/fileApi.js";
 import {STATUS_CODE} from "@/common/status.js";
 import {ADD_TAG, GET_TAG_LIST} from "@/service/api/tagApi.js";
 import {ERROR, SUCCESS, WARNING} from "@/utils/message.js";
+import {fileEnum} from "@/common/file/fileEnum.js";
 
 
 const searchTagList = ref([])
@@ -129,7 +130,7 @@ const handleUploadImage = async (event, insertImage, files) => {
   // 拿到 files 之后上传到文件服务器，然后向编辑框中插入对应的内容
   const formData = new FormData();
   formData.append('file', files[0]);
-  formData.append('biz', "comment_image")
+  formData.append("biz", fileEnum.COMMENT_IMAGE)
   //你自己的上传文件接口
   let res = await UPLOAD_IMAGE(formData);
   insertImage({
@@ -146,7 +147,7 @@ const onADD = () => {
     console.log(res)
     if (res.code === STATUS_CODE.SUCCESS_CODE) {
       SUCCESS("添加成功")
-      chooseTagList.value.push(res.data.name)
+      chooseTagList.value.push(addTagRequest.value.name)
     } else {
       ERROR(res.message)
     }
@@ -158,7 +159,6 @@ const handleChange = (e) => {
     WARNING("标签已存在")
     return
   }
-  console.log(searchTagList.value.includes(e))
   if (!searchTagList.value.includes(e)) {
     addTagRequest.value.name = e
     onADD()
@@ -201,6 +201,7 @@ onMounted(() => {
 .v-md-editor {
   position: fixed;
   bottom: 0;
+  left: 0;
   width: 100%;
   z-index: 100;
   overflow-y: auto;
@@ -210,9 +211,11 @@ onMounted(() => {
   border: 1px solid #ccc;
   padding: 10px;
   display: flex;
+  z-index: 100;
   flex-direction: column;
   background: #ffffff;
   position: fixed;
+  left: 0;
   bottom: 350px;
   width: 100%;
 

@@ -23,7 +23,8 @@
       <div class="left">
         <a-button class="profileBtn" type="secondary" status="success" @click="router.push({
           path: '/user/profile',
-        })">编辑个人资料</a-button>
+        })">编辑个人资料
+        </a-button>
       </div>
       <div class="right">
         <div class="choose">
@@ -39,16 +40,22 @@
                 <template #description>
                   <div class="description"
                        @click="toOther(item.id)">
-                    <div>{{ item.id }}. {{ item.title }}</div>
-                    <div class="createTime">{{ formatTime(item.createTime, 1) }}</div>
+                    <div v-if="chooseLabel === chooseList[0].key" class="content">{{ item.id }}. {{ item.title }}</div>
+                    <div v-else class="content">{{ item.title }}</div>
+                    <div class="createTime" >{{ formatTime(item.createTime) }}</div>
                   </div>
                 </template>
+
               </a-list-item-meta>
+              <template #actions v-if="chooseLabel==='solution' || chooseLabel === 'post'">
+                <icon-delete @click="deleteItem(item)" style="font-size: 16px;color: #ef3939"/>
+              </template>
             </a-list-item>
           </template>
 
         </a-list>
       </div>
+
 
     </div>
 
@@ -60,11 +67,14 @@
 import store from "@/store/index.js";
 import {computed, onMounted, reactive, ref} from "vue";
 import {GET_QUESTION_SUBMIT_LIST} from "@/service/api/questionSubmitApi.js";
-import {GET_PAGE_FAVOUR_POST_LIST, GET_PAGE_MY_POST_LIST} from "@/service/api/postApi.js";
+import {DELETE_POST, GET_PAGE_FAVOUR_POST_LIST, GET_PAGE_MY_POST_LIST} from "@/service/api/postApi.js";
 import {STATUS_CODE} from "@/common/status.js";
-import {WARNING} from "@/utils/message.js";
+import {ERROR, SUCCESS, WARNING} from "@/utils/message.js";
 import router from "@/router/index.js";
 import {formatTime} from "@/utils/dateParse.js";
+import {DELETE_SOLUTION, GET_PAGE_MY_SOLUTION_LIST, GET_PAGE_SOLUTION_LIST} from "@/service/api/solutionApi.js";
+import _ from "lodash";
+import {Modal} from "@arco-design/web-vue";
 
 const user = computed(() => {
   return store.getters.userInfo
@@ -97,13 +107,14 @@ const chooseHandel = (item) => {
   }
 }
 
-const pageRequest = {
-  page: 1,
+const pageRequest = reactive({
+  pages: 0,
   pageSize: 10,
-  total: 0,
+  total: -1,
   sortField: "createTime",
   sortOrder: "",
-}
+  current: 0,
+})
 
 const questionSubmitRequest = reactive({
   ...pageRequest,
@@ -111,8 +122,7 @@ const questionSubmitRequest = reactive({
 })
 
 const questionSolutionRequest = reactive({
-  ...pageRequest,
-  userId: "1" //任意值即可，都查询的是登陆用户的题解
+  ...pageRequest
 })
 
 const postRequest = reactive({
@@ -129,23 +139,18 @@ const data = ref([])
 const onBottom = () => {
   switch (chooseLabel.value) {
     case 'submit':
-      questionSubmitRequest.page++
       getSubmitRecord(false)
       break
     case 'solution':
-      questionSolutionRequest.page++
       getSolution(false)
       break
     case 'post':
-      postRequest.page++
       getPost(false)
       break
     case 'favour':
-      favourRequest.page++
       getFavour(false)
       break
   }
-  console.log("到底了")
 }
 
 const toOther = (id) => {
@@ -162,10 +167,8 @@ const toOther = (id) => {
       break
     case 'solution':
       router.push({
-        path: '/problem/do',
+        path: '/problem/solution',
         query: {
-          name: "solution",
-          type: "normal",
           id: id
         }
       })
@@ -189,24 +192,88 @@ const toOther = (id) => {
   }
 }
 
+const deleteItem = (item) => {
+  switch (chooseLabel.value) {
+    case 'submit':
+      break
+    case 'solution':
+      Modal.warning({
+        hideCancel:false,
+        simple:false,
+        title:"提示",
+        content:"是否删除题解："+item.title+" ？",
+        cancelText:"取消",
+        okText:"删除",
+        cancelButtonProps:{
+          status:"normal"
+        },
+        okButtonProps:{
+          status:"danger"
+        },
+        onOk:()=>{
+          DELETE_SOLUTION(item.id).then(res=>{
+            if (res.code === STATUS_CODE.SUCCESS_CODE){
+              getSolution(true)
+              SUCCESS("删除成功！");
+            } else {
+              ERROR(res.message)
+            }
+          })
+        }
+      })
 
+      break
+    case 'post':
+      Modal.warning({
+        hideCancel:false,
+        simple:false,
+        title:"提示",
+        content:"是否删除帖子："+item.title+" ？",
+        cancelText:"取消",
+        okText:"删除",
+        cancelButtonProps:{
+          status:"normal"
+        },
+        okButtonProps:{
+          status:"danger"
+        },
+        onOk:()=>{
+          DELETE_POST(item.id).then(res=>{
+            if (res.code === STATUS_CODE.SUCCESS_CODE){
+              getPost(true)
+              SUCCESS("删除成功！");
+            } else {
+              ERROR(res.message)
+            }
+          })
+        }
+      })
+
+      break
+    case 'favour':
+      break
+  }
+}
 const getUserById = async () => {
   await store.dispatch('getUserById', user.value.id)
 }
 
 const getSubmitRecord = (reset) => {
+  console.log('提交记录')
   if (reset) {
-    questionSubmitRequest.page = 1
-    questionSubmitRequest.total = 0
+    questionSubmitRequest.pages = 0
+    questionSubmitRequest.current = 0
     data.value = []
   }
-  if (questionSubmitRequest.total < data.value.length) {
-    WARNING("没有更多数据了")
+  if (Number(questionSubmitRequest.pages) < Number(questionSubmitRequest.current)) {
+    // WARNING("没有更多数据了")
     return
   }
   GET_QUESTION_SUBMIT_LIST(questionSubmitRequest).then(res => {
     if (res.code === STATUS_CODE.SUCCESS_CODE) {
-      questionSubmitRequest.total = res.data.total
+      questionSubmitRequest.pages = res.data.pages
+      questionSubmitRequest.current++
+      console.log(res.data)
       if (reset) {
         data.value = res.data.records.map(item => {
           return {
@@ -225,39 +292,63 @@ const getSubmitRecord = (reset) => {
         }))
       }
     }
-    console.log(res)
   }).catch(err => {
     console.log(err)
   })
-  console.log('提交记录')
 }
 
 const getSolution = (reset) => {
+  console.log('个人题解')
   if (reset) {
-    questionSolutionRequest.page = 1
-    questionSolutionRequest.total = 0
-    data.value = []
+    questionSolutionRequest.current = 0
+    questionSolutionRequest.pages = 0
+    data.value.length = 0
   }
-  if (questionSolutionRequest.total < data.value.length) {
-    WARNING("没有更多数据了")
+  if (Number(questionSolutionRequest.pages) < Number(questionSolutionRequest.current)) {
+    // WARNING("没有更多数据了")
     return
   }
-  console.log('个人题解')
+  GET_PAGE_MY_SOLUTION_LIST(questionSolutionRequest).then(res => {
+        if (res.code === STATUS_CODE.SUCCESS_CODE) {
+          questionSolutionRequest.pages = res.data.pages
+          questionSolutionRequest.current++
+          if (reset) {
+            data.value = res.data.records.map(item => {
+              return {
+                id: item.id,
+                title: item.title,
+                createTime: item.createTime
+              }
+            })
+          } else {
+            data.value.push(...res.data.records.map(item => {
+              return {
+                id: item.id,
+                title: item.title,
+                createTime: item.createTime
+              }
+            }))
+          }
+        }
+      }
+  )
 }
 
 const getPost = (reset) => {
+  console.log('贴子发布')
   if (reset) {
-    postRequest.page = 1
-    postRequest.total = 0
+    postRequest.current = 0
+    postRequest.pages = 0
     data.value = []
   }
-  if (postRequest.total < data.value.length) {
-    WARNING("没有更多数据了")
+  if (Number(postRequest.pages) < Number(postRequest.current)) {
+    // WARNING("没有更多数据了")
     return
   }
   GET_PAGE_MY_POST_LIST(postRequest).then(res => {
     if (res.code === STATUS_CODE.SUCCESS_CODE) {
-      postRequest.total = res.data.total
+      postRequest.pages = res.data.pages
+      postRequest.current++
       if (reset) {
         data.value = res.data.records.map(item => {
           return {
@@ -280,22 +371,23 @@ const getPost = (reset) => {
   }).catch(err => {
     console.log(err)
   })
-  console.log('贴子发布')
 }
 
 const getFavour = (reset) => {
+  console.log('帖子收藏')
   if (reset) {
-    favourRequest.page = 1
-    favourRequest.total = 0
+    favourRequest.current = 0
+    favourRequest.pages = 0
     data.value = []
   }
-  if (favourRequest.total < data.value.length) {
-    WARNING("没有更多数据了")
+  if (Number(favourRequest.total) < Number(favourRequest.pages)) {
+    // WARNING("没有更多数据了")
     return
   }
   GET_PAGE_FAVOUR_POST_LIST(favourRequest).then(res => {
     if (res.code === STATUS_CODE.SUCCESS_CODE) {
-      favourRequest.total = res.data.total
+      favourRequest.pages = res.data.pages
+      favourRequest.current++
       if (reset) {
         data.value = res.data.records.map(item => {
           return {
@@ -318,12 +410,10 @@ const getFavour = (reset) => {
   }).catch(err => {
     console.log(err)
   })
-  console.log('帖子收藏')
 }
 
-onMounted( async () => {
+onMounted(async () => {
   await getUserById()
-  getSubmitRecord(true)
 })
 
 
@@ -386,6 +476,7 @@ onMounted( async () => {
   .bottom {
     display: flex;
     margin-top: 30px;
+
     .left {
       border-radius: 6px;
       display: flex;
@@ -395,7 +486,8 @@ onMounted( async () => {
       background: #ffffff;
       width: 20%;
       margin-right: 2%;
-      .profileBtn{
+
+      .profileBtn {
         width: 90%;
         border-radius: 5px;
       }
@@ -434,10 +526,17 @@ onMounted( async () => {
         align-items: center;
         justify-content: space-between;
         cursor: pointer;
-        width: 800px;
+        width: 780px;
 
         &:hover {
           color: #1890FF;
+        }
+
+        .content {
+          width: 80%;
+          overflow: hidden; /*超出部分隐藏*/
+          white-space: nowrap; /*禁止换行*/
+          text-overflow: ellipsis; /*省略号*/
         }
 
         .createTime {

@@ -57,14 +57,9 @@
           </a-breadcrumb>
         </div>
         <div class="other">
-          <a-scrollbar style="height:580px;overflow: auto;">
-            <!--            <ProblemInfo v-if="route.query.name === 'detail'" :questionInfo="questionInfo"/>-->
-            <KeepAlive>
-              <component :is="currentComponent"></component>
-            </KeepAlive>
-
-          </a-scrollbar>
-
+          <KeepAlive>
+            <component :is="currentComponent"></component>
+          </KeepAlive>
         </div>
       </div>
       <div class="right">
@@ -203,7 +198,6 @@
             </a-typography-paragraph>
           </template>
         </a-split>
-
       </div>
     </div>
   </div>
@@ -523,7 +517,7 @@ onMounted(() => {
         font-weight: 500;
         border-radius: 5px;
         margin-right: 10px;
-        margin-left: 30px;
+        //margin-left: 30px;
         width: 120px;
         background: #E7E7E7;
         animation: .5s;
@@ -563,7 +557,6 @@ onMounted(() => {
     display: flex;
     width: 97%;
     margin: 0 auto;
-    //background: #ffc0cb;
     .left {
       padding-left: 10px;
       padding-right: 10px;
