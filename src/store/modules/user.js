@@ -15,15 +15,22 @@ export default {
             userAccount: "",
             userRole: ACCESS_ENUM.NOT_LOGIN,
         },
+        watchLogin:false
     },
     getters: {
         userInfo: (state) => {
             return state.userInfo
         },
+        loginFlag:(state)=>{
+            return state.watchLogin
+        }
     },
     mutations: {
         set_user(state, payload) {
             state.userInfo = payload
+        },
+        set_watchLogin(state, payload) {
+            state.watchLogin = payload
         },
     },
     actions: {
@@ -32,8 +39,10 @@ export default {
                 if (res.code === STATUS_CODE.SUCCESS_CODE) {
                     console.log(res)
                     commit('set_user', res.data)
+                    commit('set_watchLogin',true)
                 } else if (res.code === STATUS_CODE.NOT_LOGIN_CODE) {
                     commit("set_user", {userRole: ACCESS_ENUM.NOT_LOGIN})
+                    commit('set_watchLogin',false)
                 }
             })
         },

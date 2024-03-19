@@ -182,6 +182,7 @@ const handleSelect = (v) => {
     case '3':
       store.dispatch('logOut').then(res => {
         if (res.code === STATUS_CODE.SUCCESS_CODE) {
+          store.commit('set_watchLogin',false)
           SUCCESS("登出成功！")
         }
       })

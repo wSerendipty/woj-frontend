@@ -56,6 +56,7 @@ import {ERROR, SUCCESS, WARNING} from "@/utils/message.js";
 import {LOGIN} from "@/service/api/userApi.js";
 import {STATUS_CODE} from "@/common/status.js";
 import router from "@/router";
+import store from "@/store/index.js";
 
 const form = reactive({
   userAccount: '',
@@ -85,6 +86,7 @@ const handleSubmit = () => {
   LOGIN(JSON.stringify(form)).then(res => {
     if (res.code === STATUS_CODE.SUCCESS_CODE) {
       SUCCESS("登录成功！")
+      store.commit('set_watchLogin',true)
       // 登录成功后从localStorage获取上一个页面路径，并解析为字符串
       const previousRoute = localStorage.getItem('previousRoute');
       const pathToRedirect = previousRoute ? JSON.parse(previousRoute) : '/index'; // 若没有存储则默认跳转首页

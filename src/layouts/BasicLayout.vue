@@ -24,7 +24,6 @@
             <!--            <a-input-search class="search" placeholder="搜索"/>-->
             <!--            <icon-search class="icon"/>-->
             <div v-if="loginUser.userRole !== ACCESS_ENUM.NOT_LOGIN" style="display: flex;align-items: center">
-              <icon-notification class="icon"/>
               <a-dropdown @select="handleSelect">
                 <a-avatar class="avatar">
                   <IconUser v-if="!Boolean(loginUser.userAvatar)"/>
@@ -142,6 +141,7 @@ const handleSelect = (v) => {
       store.dispatch('logOut').then(res => {
         if (res.code === STATUS_CODE.SUCCESS_CODE) {
           SUCCESS("登出成功！")
+          store.commit('set_watchLogin',false)
         }
       })
       break;

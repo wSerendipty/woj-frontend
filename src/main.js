@@ -28,6 +28,7 @@ import createCopyCodePlugin from '@kangc/v-md-editor/lib/plugins/copy-code/index
 // highlightjs
 import hljs from 'highlight.js';
 
+
 VueMarkdownEditor.use(githubTheme, {
     Hljs: hljs,
     extend(md) {

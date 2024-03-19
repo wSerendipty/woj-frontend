@@ -276,9 +276,8 @@ const handleHover = (e) => {
   hoverFlag.value = true
 }
 
-const handleLeave = (e) => {
+const handleLeave = () => {
   hoverFlag.value = false
-  console.log(e.target.dataset.state)
 }
 
 const chooseTag = (index) => {
